@@ -138,7 +138,7 @@ function Preferencias({ cerrar }: { cerrar: () => void }) {
   const p = useAlmacen(preferencias);
   const casilla = (texto: string, valor: boolean, cambiar: (v: boolean) => void, ayuda?: string) => (
     <label className="flex items-start gap-3 py-2 text-sm">
-      <input type="checkbox" className="mt-0.5 size-5 accent-primario" checked={valor} onChange={(e) => cambiar(e.target.checked)} />
+      <input type="checkbox" className="mt-0.5 size-5 shrink-0 accent-primario" checked={valor} onChange={(e) => cambiar(e.target.checked)} />
       <span>
         <span className="font-semibold">{texto}</span>
         {ayuda && <span className="block text-xs text-suave">{ayuda}</span>}

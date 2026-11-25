@@ -10,6 +10,9 @@ import { DIAS, type Conjunto } from './datos';
 
 registrar([BarChart, LineChart, HeatmapChart, GridComponent, TooltipComponent, LegendComponent, VisualMapComponent, AriaComponent, CanvasRenderer]);
 
+/** Acorta los nombres de área en el eje para que sigan distinguiéndose; el detalle muestra el nombre completo. */
+const abreviar = (t: string) => t.replace(/^Dirección General de /, 'D. G. ').replace(/^Dirección de /, 'Dir. ');
+
 export const instancias = new Map<string, ECharts>();
 
 const numero = (v: unknown, unidad = '') => (typeof v === 'number' ? `${v.toLocaleString('es-AR')}${unidad}` : '—');
@@ -81,7 +84,7 @@ export function opcion(c: Conjunto): EChartsCoreOption {
     inverse: horizontal,
     axisLine: lineaEje,
     axisTick: { show: false },
-    axisLabel: horizontal ? { ...etiqueta, width: 130, overflow: 'truncate' } : etiqueta,
+    axisLabel: horizontal ? { ...etiqueta, width: 160, overflow: 'truncate', formatter: abreviar } : etiqueta,
     boundaryGap: horizontal,
   };
   return {
