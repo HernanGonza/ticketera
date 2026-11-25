@@ -4,10 +4,10 @@
 - [x] Documentos (`CLAUDE.md`, SPEC, PLAN, DECISIONES, API) y marca en `docs/marca/`
 - [x] Monorepo npm y `packages/shared` (schemas, dominio, estados, eventos, colas)
 - [x] Postgres embebido + API + worker + web con `npm run dev`; `/api/health` con DB
-- [ ] Dockerfiles y compose iniciales (devops-qa)
+- [x] Dockerfiles y compose iniciales (devops-qa)
 
 ## Fase 2 — Construcción
-- [ ] db: esquema, migraciones, vistas, índices, seed, operaciones de dominio y consultas
+- [x] db: esquema, migraciones, vistas, índices, seed, operaciones de dominio y consultas
 - [ ] backend: auth (portal, local, recupero, usuario-existe), tickets, mensajes, adjuntos, admin, estadísticas
 - [ ] realtime-colas: Socket.IO, outbox, pg-boss, mails, SLA, autocierre, asignación, panel de colas
 - [ ] frontend: marca, shell, solicitante, kanban, lista, detalle con chat
