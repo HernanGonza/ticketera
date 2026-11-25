@@ -122,20 +122,28 @@ export async function renovarSesion(deps: Deps, req: FastifyRequest, reply: Fast
   return r.usuario;
 }
 
-/** Revoca la sesión que traigan las cookies (refresh o acceso). */
-export async function cerrarSesionActual(deps: Deps, req: FastifyRequest): Promise<void> {
+/** Revoca la sesión que traigan las cookies (refresh o acceso). Devuelve los usuarios afectados. */
+export async function cerrarSesionActual(deps: Deps, req: FastifyRequest): Promise<string[]> {
   const { db } = deps.conexion;
   const familias = new Set<string>();
+  const usuarios = new Set<string>();
   const refresh = req.cookies[COOKIE_REFRESH];
   if (refresh) {
     const [s] = await db
-      .select({ familia: sesiones.familia })
+      .select({ familia: sesiones.familia, usuarioId: sesiones.usuarioId })
       .from(sesiones)
       .where(eq(sesiones.tokenHash, hashToken(refresh)));
-    if (s) familias.add(s.familia);
+    if (s) {
+      familias.add(s.familia);
+      usuarios.add(s.usuarioId);
+    }
   }
   const acceso = req.cookies[COOKIE_SESION];
   const t = acceso ? await verificarSesion(acceso, deps.config.SESSION_SECRET) : null;
-  if (t?.familia) familias.add(t.familia);
+  if (t?.familia) {
+    familias.add(t.familia);
+    usuarios.add(t.id);
+  }
   for (const f of familias) await revocarFamilia(db, f);
+  return [...usuarios];
 }

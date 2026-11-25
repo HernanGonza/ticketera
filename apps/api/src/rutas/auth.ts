@@ -20,7 +20,7 @@ import { crearLimitador } from '../auth/limites';
 import type { PersonalProvider } from '../auth/personal';
 import { restablecerPassword } from '../auth/recupero';
 import { abrirSesion, borrarCookies, cerrarSesionActual, renovarSesion } from '../auth/sesiones';
-import { buscarUsuarioPorEmail, obtenerUsuarioSesion, solicitarRecuperacion, USUARIOS_DEMO } from '../db';
+import { buscarUsuarioPorEmail, obtenerUsuarioSesion, solicitarRecuperacion, USUARIOS_DEMO, emitirEvento } from '../db';
 import { ErrorHttp, noAutenticado, noEncontrado } from '../errores';
 import { CON_SESION, respuestas } from './comun';
 
@@ -182,7 +182,9 @@ export const rutasAuth: FastifyPluginAsyncZod<{ personal: PersonalProvider }> = 
       schema: { tags, summary: 'Cerrar sesión', response: respuestas(z.object({ redirigirA: z.string() })) },
     },
     async (req, reply) => {
-      await cerrarSesionActual(app.deps, req);
+      // Los sockets abiertos con esta sesión se cortan ya, sin esperar a que venza el token.
+      for (const usuarioId of await cerrarSesionActual(app.deps, req))
+        await db.transaction((tx) => emitirEvento(tx, 'usuario.acceso_cambiado', { usuarioId }));
       borrarCookies(app.deps, reply);
       return { redirigirA: config.portalLogoutUrl };
     },

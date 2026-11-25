@@ -19,6 +19,8 @@ export default defineConfig({
           testTimeout: 30_000,
           hookTimeout: 60_000,
           maxWorkers: 3,
+          // Corre después de los unitarios: comparte máquina con un Postgres real.
+          sequence: { groupOrder: 1 },
         },
       },
     ],
