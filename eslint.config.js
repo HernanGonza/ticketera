@@ -3,12 +3,16 @@ import hooks from 'eslint-plugin-react-hooks';
 import ts from 'typescript-eslint';
 
 export default ts.config(
-  { ignores: ['**/dist/**', '**/node_modules/**', '.data*/**', 'graft/**', '.claude/**', 'docs/**', 'playwright-report/**', 'test-results/**'] },
+  { ignores: ['**/dist/**', '**/node_modules/**', '.data*/**', 'graft/**', '.claude/**', 'docs/**', 'playwright-report/**', 'test-results/**', 'blob-report/**', 'backups/**'] },
   js.configs.recommended,
   ...ts.configs.recommended,
   {
     files: ['**/*.{js,mjs,cjs}'],
-    languageOptions: { globals: { process: 'readonly', console: 'readonly', setInterval: 'readonly', setTimeout: 'readonly', clearTimeout: 'readonly', URL: 'readonly', fetch: 'readonly', Buffer: 'readonly' } },
+    languageOptions: { globals: {
+      process: 'readonly', console: 'readonly', Buffer: 'readonly', URL: 'readonly', URLSearchParams: 'readonly',
+      fetch: 'readonly', AbortController: 'readonly', AbortSignal: 'readonly',
+      setTimeout: 'readonly', clearTimeout: 'readonly', setInterval: 'readonly', clearInterval: 'readonly',
+    } },
   },
   {
     files: ['apps/web/src/**/*.{ts,tsx}'],

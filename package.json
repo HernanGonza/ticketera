@@ -26,6 +26,8 @@
     "test:unit": "vitest run --project unit",
     "test:int": "vitest run --project integracion",
     "e2e": "node scripts/e2e.mjs",
+    "e2e:capturas": "node scripts/e2e.mjs --project=capturas",
+    "e2e:perf": "node scripts/e2e.mjs --project=perf",
     "build": "npm run build -w @eco/web && npm run build -w @eco/api && npm run build -w @eco/worker",
     "typecheck": "tsc -p tsconfig.json && npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
