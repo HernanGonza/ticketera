@@ -39,6 +39,8 @@ export async function prepararDatos(tecnico: Sesion, solicitante: Sesion): Promi
     multipart: { archivo: { name: 'mensaje-de-error.png', mimeType: 'image/png', buffer: PNG } },
   });
   expect(adjunto.status()).toBe(201);
+  // La categoría tiene asignación automática: se espera al worker para no competir por la versión.
+  await expect.poll(async () => (await tecnico.api.ticket(enCurso.id)).estado).toBe('asignado');
   const yo = await tecnico.api.tecnico('Martín Acosta');
   await tecnico.api.actualizar(enCurso.id, { asignadoId: yo.id });
   await tecnico.api.actualizar(enCurso.id, { estado: 'en_curso' });

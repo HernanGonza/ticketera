@@ -30,21 +30,23 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
   use: {
     ...navegador,
-    baseURL: url,
+    baseURL: process.env.E2E_BASE_URL ?? url,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
   projects: [
     { name: 'e2e', testIgnore: ['capturas/**', 'perf/**'] },
     ...(opcionales.includes('capturas') ? [{ name: 'capturas', testDir: 'tests/e2e/capturas' }] : []),
-    ...(opcionales.includes('perf') ? [{ name: 'perf', testDir: 'tests/e2e/perf', timeout: 180_000 }] : []),
+    ...(opcionales.includes('perf') ? [{ name: 'perf', testDir: 'tests/e2e/perf', timeout: 300_000, use: { trace: 'off' as const } }] : []),
   ],
-  webServer: {
-    command: 'node scripts/dev.mjs',
+  // Con E2E_BASE_URL las pruebas corren contra un stack ya levantado (p. ej. producción detrás de Caddy).
+  webServer: process.env.E2E_BASE_URL ? undefined : {
+    // Las mediciones se hacen contra el código compilado.
+    command: opcionales.includes('perf') ? 'node scripts/dev.mjs --build' : 'node scripts/dev.mjs',
     url: `${url}/api/health`,
     env: { ...ENTORNO_E2E },
     reuseExistingServer: false,
-    timeout: 180_000,
+    timeout: 300_000,
     stdout: 'pipe',
     stderr: 'pipe',
     // Sin esto Playwright mata el grupo con SIGKILL y Postgres queda sin apagar (en Windows se ignora).
