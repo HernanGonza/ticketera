@@ -51,9 +51,11 @@ function errorSeguro(e: unknown): Error {
   const x = e as { message?: string; code?: string; cause?: { message?: string; code?: string } };
   const mensaje = x.cause?.message ?? x.message ?? 'Error desconocido';
   const codigo = x.cause?.code ?? x.code;
-  const limpio = new Error(
-    `${codigo ? `[${codigo}] ` : ''}${mensaje.split('\n')[0]!.replace(/token=[\w-]+/gi, 'token=[oculto]')}`.slice(0, 300),
-  );
+  const breve = mensaje
+    .split('\n')[0]!
+    .replace(/token=[\w-]+/gi, 'token=[oculto]')
+    .replace(/[\w.+-]+@[\w-]+(\.[\w-]+)+/g, '[correo]');
+  const limpio = new Error(`${codigo ? `[${codigo}] ` : ''}${breve}`.slice(0, 300));
   limpio.stack = undefined;
   return limpio;
 }

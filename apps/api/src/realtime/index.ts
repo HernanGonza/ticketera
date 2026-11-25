@@ -100,7 +100,8 @@ export async function iniciarRealtime(servidor: ServidorHttp, deps: Deps, opcion
   const alFallar = (err: Error) => log.warn({ err }, 'Error en el canal entre réplicas');
 
   const pool = crearPoolAdapter(config.DATABASE_URL, alFallar);
-  await asegurarTablaAdjuntos(pool);
+  // Si la base no responde todavía, la API arranca igual; el worker también crea la tabla.
+  await asegurarTablaAdjuntos(pool).catch(alFallar);
 
   const io: ServidorEco = new Server(servidor, {
     path: SOCKET_PATH,

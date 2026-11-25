@@ -105,6 +105,15 @@ describe('panel de colas', () => {
     expect((await pedir(ruta(ID, 'cancelar'), admin, 'POST')).statusCode).toBe(404);
   });
 
+  it('no reanuda un trabajo si ya hay otro pendiente con la misma clave', async () => {
+    await boss!.createQueue(COLAS.sla, { policy: 'short' });
+    const viejo = (await boss!.send(COLAS.sla, {}, { singletonKey: 'k' }))!;
+    await boss!.cancel(COLAS.sla, viejo);
+    await boss!.send(COLAS.sla, {}, { singletonKey: 'k' });
+    const r = await pedir(`/api/admin/colas/${COLAS.sla}/trabajos/${viejo}/reintentar`, admin, 'POST');
+    expect(r.statusCode).toBe(409);
+  });
+
   it('valida el nombre de la cola, el id y los filtros', async () => {
     expect((await pedir('/api/admin/colas/otra/trabajos', admin)).statusCode).toBe(404);
     expect((await pedir(`/api/admin/colas/${COLAS.mail}/trabajos?limite=999`, admin)).statusCode).toBe(400);

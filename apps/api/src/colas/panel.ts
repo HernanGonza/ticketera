@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { COLAS, type NombreCola } from '@eco/shared/colas';
 import { zFiltroTrabajos, zOk, zResumenCola, zTrabajo, type ResumenCola, type Trabajo } from '@eco/shared/schemas';
 import { exigirAdmin } from '../auth/guardas';
+import { esDuplicado } from '../db';
 import { ErrorHttp, noEncontrado } from '../errores';
 import { CON_SESION, respuestas } from '../rutas/comun';
 import { depurar } from './depurar';
@@ -178,8 +179,14 @@ export const panel: FastifyPluginAsyncZod = async (app) => {
   accion('reintentar', 'Vuelve a encolar un trabajo fallido o cancelado', async (cola, id, estado) => {
     if (estado !== 'failed' && estado !== 'cancelled') return false;
     const b = await conectarBoss();
-    const r = estado === 'failed' ? await b.retry(cola, id) : await b.resume(cola, id);
-    return r.affected > 0;
+    try {
+      const r = estado === 'failed' ? await b.retry(cola, id) : await b.resume(cola, id);
+      return r.affected > 0;
+    } catch (e) {
+      // Ya hay otro trabajo pendiente con la misma clave (colas que agrupan).
+      if (esDuplicado(e)) return false;
+      throw e;
+    }
   });
   accion('cancelar', 'Cancela un trabajo pendiente o en curso', async (cola, id, estado) => {
     if (estado !== 'created' && estado !== 'retry' && estado !== 'active') return false;
