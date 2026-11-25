@@ -45,3 +45,5 @@
 | 41 | Todo token de sesión exige su sesión registrada; captcha antes del límite por correo; Caddy envía a la API solo la IP validada | — | Hallazgos de la revisión de seguridad |
 | 42 | Outbox sin descarte: reintentos con espera creciente (hasta 1 h) en `reintentar_at`; historial protegido también contra borrado | Descartar al décimo intento | No perder avisos ante una caída prolongada |
 | 43 | `solicitanteEmail` va vacío a quien no es personal de soporte; cupos por usuario en altas (30 pedidos, 90 mensajes y 90 archivos por minuto); `ADJUNTOS_PERMITIDOS` opcional | — | Hallazgos de la revisión y spec |
+| 44 | Detalle del pedido: quien pidió ayuda ve una sola columna (sin prioridad ni movimientos de gestión, «Detalles» plegado); técnicos con información y adjuntos plegables. Alta sin textos de ayuda y adjuntos como botón | Pantalla anterior | Pedido de interfaz más simple |
+| 45 | Los selectores de gestión no aplican al recorrerlos con las flechas (esperan Enter); un cambio usa la versión que la persona vio; los adjuntos fallidos se reintentan desde el aviso | — | Hallazgos de la revisión |

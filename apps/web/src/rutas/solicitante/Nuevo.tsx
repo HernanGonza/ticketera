@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
 import { ArrowLeft, CircleCheck } from 'lucide-react';
 import { useForm, type FieldPath } from 'react-hook-form';
-import { formatearDuracion } from '@eco/shared/dominio';
 import type { Adjunto, Categoria, CrearTicket, TicketDetalle } from '@eco/shared/schemas';
 import { ZonaAdjuntos } from '../../componentes/Adjuntos';
 import { CamposExtra } from '../../componentes/CamposExtra';
@@ -62,7 +61,7 @@ export function Nuevo() {
   ];
   return (
     <div className="mx-auto max-w-4xl">
-      <Encabezado titulo="Nuevo pedido">¿Con qué necesita ayuda? Elija una categoría.</Encabezado>
+      <Encabezado titulo="Nuevo pedido">¿Con qué necesita ayuda?</Encabezado>
       {!activas.length && <EstadoVacio titulo="No hay categorías disponibles">Comuníquese con el área de Soporte.</EstadoVacio>}
       {grupos.map((g) => (
         <section key={g.titulo} className="mb-5">
@@ -74,13 +73,13 @@ export function Nuevo() {
                   type="button"
                   data-testid={`categoria-${c.id}`}
                   onClick={() => void navegar({ search: { categoria: c.id } })}
+                  title={c.descripcion || undefined}
                   className="tarjeta flex h-full w-full flex-col items-center gap-2 p-4 text-center transition-colors hover:border-primario hover:bg-primario-suave hover:text-primario-sobre-suave"
                 >
                   <span className="flex size-12 items-center justify-center rounded-full bg-primario-suave text-primario-sobre-suave">
                     <IconoCategoria nombre={c.icono} className="size-6" />
                   </span>
                   <span className="font-semibold">{c.nombre}</span>
-                  {c.descripcion && <span className="text-xs opacity-80">{c.descripcion}</span>}
                 </button>
               </li>
             ))}
@@ -138,12 +137,10 @@ function Formulario({ categoria, maxMb, listo }: { categoria: Categoria; maxMb: 
       <Link to="/nuevo" className="mb-2 inline-flex items-center gap-1 text-sm text-enlace">
         <ArrowLeft aria-hidden className="size-4" /> Cambiar categoría
       </Link>
-      <Encabezado titulo={categoria.nombre}>
-        Tiempo objetivo de primera respuesta: {formatearDuracion(categoria.slaRespuestaMin)} hábiles.
-      </Encabezado>
+      <Encabezado titulo={categoria.nombre} />
       <form noValidate className="tarjeta flex flex-col gap-4 p-4 md:p-6" onSubmit={handleSubmit((v) => crear.mutate(v))}>
-        <Campo etiqueta="Título" requerido error={errors.titulo?.message} ayuda="Resuma el problema en una línea.">
-          {(p) => <input className="entrada" maxLength={150} {...p} {...register('titulo')} />}
+        <Campo etiqueta="Título" requerido error={errors.titulo?.message}>
+          {(p) => <input className="entrada" maxLength={150} placeholder="El problema en una línea" {...p} {...register('titulo')} />}
         </Campo>
         <Campo etiqueta="Descripción" requerido error={errors.descripcion?.message}>
           {(p) => <textarea rows={5} className="entrada" {...p} {...register('descripcion')} />}
@@ -153,13 +150,10 @@ function Formulario({ categoria, maxMb, listo }: { categoria: Categoria; maxMb: 
           registrar={(k) => register(`datos.${k}` as FieldPath<ValoresPedido>)}
           errores={errors.datos as Record<string, { message?: string }> | undefined}
         />
-        <Campo etiqueta="Ubicación o interno" ayuda="Oficina, piso o número de interno." error={errors.ubicacion?.message}>
-          {(p) => <input className="entrada" maxLength={120} {...p} {...register('ubicacion')} />}
+        <Campo etiqueta="Ubicación o interno" error={errors.ubicacion?.message}>
+          {(p) => <input className="entrada" maxLength={120} placeholder="Oficina, piso o interno" {...p} {...register('ubicacion')} />}
         </Campo>
-        <fieldset>
-          <legend className="mb-1 text-sm font-semibold">Adjuntos</legend>
-          <ZonaAdjuntos archivos={archivos} cambiar={setArchivos} maxMb={maxMb} />
-        </fieldset>
+        <ZonaAdjuntos archivos={archivos} cambiar={setArchivos} maxMb={maxMb} />
         <Boton type="submit" tamano="lg" ocupado={crear.isPending}>
           {crear.isPending ? 'Enviando…' : 'Enviar pedido'}
         </Boton>

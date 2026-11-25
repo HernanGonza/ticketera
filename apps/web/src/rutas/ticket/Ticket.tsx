@@ -13,7 +13,7 @@ import {
 import { SALAS } from '@eco/shared/realtime';
 import { NOMBRE_SISTEMA } from '@eco/shared/marca';
 import type { TicketDetalle } from '@eco/shared/schemas';
-import { agregarArchivos, GaleriaAdjuntos } from '../../componentes/Adjuntos';
+import { agregarArchivos, GaleriaAdjuntos, subirArchivos } from '../../componentes/Adjuntos';
 import { BarraSla } from '../../componentes/BarraSla';
 import { Avatar, InsigniaEstado, InsigniaPrioridad } from '../../componentes/insignias';
 import { Texto } from '../../componentes/Texto';
@@ -22,6 +22,7 @@ import { Dialogo } from '../../componentes/ui/flotantes';
 import { cambiarEstado } from '../../lib/acciones';
 import { useAlmacen } from '../../lib/almacen';
 import { api } from '../../lib/api';
+import { cn } from '../../lib/cn';
 import { claves, qTicket } from '../../lib/consultas';
 import { useAhora, useCalendario, useCatalogo, useSala, useUsuario } from '../../lib/hooks';
 import { formatearDato } from '../../lib/historial';
@@ -57,81 +58,110 @@ function Detalle({ ticket: t }: { ticket: TicketDetalle }) {
   const campos = catalogo?.categorias.find((c) => c.id === t.categoriaId)?.campos;
   const datos = Object.entries(t.datos);
 
+  const detalles: [string, string][] = [
+    ['Categoría', t.categoriaNombre],
+    ...(staff ? ([['Área', t.areaNombre ?? '—']] as [string, string][]) : []),
+    ['Ubicación / interno', t.ubicacion ?? '—'],
+    ['Atiende', t.asignado?.nombre ?? 'Sin asignar'],
+    ...(staff ? ([['Correo', t.solicitanteEmail]] as [string, string][]) : []),
+    ['Creado', formatearFechaHora(t.creadoAt)],
+    ...(t.resueltoAt ? ([['Resuelto', formatearFechaHora(t.resueltoAt)]] as [string, string][]) : []),
+    ...(t.cerradoAt ? ([['Cerrado', formatearFechaHora(t.cerradoAt)]] as [string, string][]) : []),
+    ...(t.reabierto ? ([['Reaperturas', String(t.reabierto)]] as [string, string][]) : []),
+    ...(staff && t.calificacion !== null && !esDueno
+      ? ([['Calificación', `${t.calificacion} de 5${t.comentarioCalificacion ? ` · ${t.comentarioCalificacion}` : ''}`]] as [string, string][])
+      : []),
+  ];
+  const informacion = (
+    <dl className="flex flex-col gap-1.5">
+      {detalles.map(([k, v]) => (
+        <div key={k} className="flex flex-wrap justify-between gap-x-3">
+          <dt className="shrink-0 text-suave">{k}</dt>
+          <dd className="ml-auto max-w-full text-right wrap-anywhere">{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+  const principal = (
+    <div className="flex min-w-0 flex-col gap-4">
+      <section className="tarjeta p-4" aria-label="Descripción del pedido">
+        <p className="mb-2 flex items-center gap-2 text-sm text-suave">
+          <Avatar nombre={t.solicitante.nombre} />
+          <span>
+            <strong className="text-texto">{t.solicitante.nombre}</strong> · {formatearFechaHora(t.creadoAt)}
+          </span>
+        </p>
+        <Texto texto={t.descripcion} />
+        {datos.length > 0 && (
+          <dl className="mt-3 grid gap-x-4 gap-y-2 border-t border-borde pt-3 text-sm sm:grid-cols-2">
+            {datos.map(([k, v]) => {
+              const campo = campos?.find((c) => c.clave === k);
+              return (
+                <div key={k}>
+                  <dt className="text-xs text-suave">{campo?.etiqueta ?? k}</dt>
+                  <dd className="break-words">{formatearDato(campo, v)}</dd>
+                </div>
+              );
+            })}
+          </dl>
+        )}
+        {!staff && t.adjuntos.length > 0 && (
+          <div className="mt-3">
+            <GaleriaAdjuntos adjuntos={t.adjuntos} />
+          </div>
+        )}
+      </section>
+      <Acciones ticket={t} />
+      {esDueno && (t.estado === 'resuelto' || t.estado === 'cerrado' || t.calificacion !== null) && <Calificacion ticket={t} />}
+      <Chat ticket={t} usuario={usuario} puedeEscribir={escribe} />
+    </div>
+  );
+
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className={cn('mx-auto', staff ? 'max-w-6xl' : 'max-w-3xl')}>
       <Link to={staff ? '/kanban' : '/mis-pedidos'} className="mb-2 inline-flex items-center gap-1 text-sm text-enlace">
         <ArrowLeft aria-hidden className="size-4" /> {staff ? 'Volver al tablero' : 'Volver a mis pedidos'}
       </Link>
       <header className="mb-4">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-bold text-suave">{t.codigo}</span>
           <InsigniaEstado estado={t.estado} data-testid="estado-ticket" />
-          <InsigniaPrioridad prioridad={t.prioridad} />
+          {staff && <InsigniaPrioridad prioridad={t.prioridad} />}
+          <span className="text-sm text-suave">{t.codigo}</span>
           <Presentes ticketId={t.id} yo={usuario.id} />
         </div>
         <h1 className="mt-1 break-words">{t.titulo}</h1>
       </header>
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="flex min-w-0 flex-col gap-4">
-          <section className="tarjeta p-4" aria-label="Descripción del pedido">
-            <p className="mb-2 flex items-center gap-2 text-sm text-suave">
-              <Avatar nombre={t.solicitante.nombre} />
-              <span>
-                <strong className="text-texto">{t.solicitante.nombre}</strong> · {formatearFechaHora(t.creadoAt)}
-              </span>
-            </p>
-            <Texto texto={t.descripcion} />
-            {datos.length > 0 && (
-              <dl className="mt-3 grid gap-x-4 gap-y-2 border-t border-borde pt-3 text-sm sm:grid-cols-2">
-                {datos.map(([k, v]) => {
-                  const campo = campos?.find((c) => c.clave === k);
-                  return (
-                    <div key={k}>
-                      <dt className="text-xs text-suave">{campo?.etiqueta ?? k}</dt>
-                      <dd className="break-words">{formatearDato(campo, v)}</dd>
-                    </div>
-                  );
-                })}
-              </dl>
-            )}
-          </section>
-          <Acciones ticket={t} />
-          {esDueno && (t.estado === 'resuelto' || t.estado === 'cerrado' || t.calificacion !== null) && <Calificacion ticket={t} />}
-          <Chat ticket={t} usuario={usuario} puedeEscribir={escribe} />
+      {staff ? (
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          {principal}
+          <aside className="flex flex-col gap-4" aria-label="Datos del pedido">
+            <Gestion ticket={t} usuario={usuario} />
+            <section className="tarjeta p-4 text-sm">
+              <BarraSla ticket={t} ahora={ahora} calendario={calendario} />
+            </section>
+            <Plegable titulo="Información">{informacion}</Plegable>
+            <Plegable titulo={`Adjuntos (${t.adjuntos.length})`} abierto={t.adjuntos.length > 0}>
+              <Archivos ticket={t} puedeSubir={escribe} maxMb={catalogo?.configuracion.adjuntoMaxMb ?? 10} />
+            </Plegable>
+            <Historial ticketId={t.id} />
+          </aside>
         </div>
-        <aside className="flex flex-col gap-4" aria-label="Datos del pedido">
-          {staff && <Gestion ticket={t} usuario={usuario} />}
-          <section className="tarjeta p-4 text-sm">
-            <h2 className="mb-2">Información</h2>
-            <BarraSla ticket={t} ahora={ahora} calendario={calendario} />
-            <dl className="mt-2 flex flex-col gap-1.5">
-              {[
-                ['Categoría', t.categoriaNombre],
-                ['Área', t.areaNombre ?? '—'],
-                ['Ubicación / interno', t.ubicacion ?? '—'],
-                ['Asignado a', t.asignado?.nombre ?? 'Sin asignar'],
-                ['Solicitante', t.solicitante.nombre],
-                ...(staff ? [['Correo', t.solicitanteEmail]] : []),
-                ['Creado', formatearFechaHora(t.creadoAt)],
-                ...(t.resueltoAt ? [['Resuelto', formatearFechaHora(t.resueltoAt)]] : []),
-                ...(t.cerradoAt ? [['Cerrado', formatearFechaHora(t.cerradoAt)]] : []),
-                ...(t.reabierto ? [['Reaperturas', String(t.reabierto)]] : []),
-                ...(staff && t.calificacion !== null && !esDueno
-                  ? [['Calificación', `${t.calificacion} de 5${t.comentarioCalificacion ? ` · ${t.comentarioCalificacion}` : ''}`]]
-                  : []),
-              ].map(([k, v]) => (
-                <div key={k} className="flex flex-wrap justify-between gap-x-3">
-                  <dt className="shrink-0 text-suave">{k}</dt>
-                  <dd className="ml-auto max-w-full text-right wrap-anywhere">{v}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-          <Archivos ticket={t} puedeSubir={escribe} maxMb={catalogo?.configuracion.adjuntoMaxMb ?? 10} />
-          <Historial ticketId={t.id} />
-        </aside>
-      </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {principal}
+          <Plegable titulo="Detalles">{informacion}</Plegable>
+        </div>
+      )}
     </div>
+  );
+}
+
+function Plegable({ titulo, abierto, children }: { titulo: string; abierto?: boolean; children: React.ReactNode }) {
+  return (
+    <details className="tarjeta p-4 text-sm" open={abierto}>
+      <summary className="cursor-pointer font-bold">{titulo}</summary>
+      <div className="mt-3">{children}</div>
+    </details>
   );
 }
 
@@ -307,19 +337,12 @@ function Archivos({ ticket: t, puedeSubir, maxMb }: { ticket: TicketDetalle; pue
   const qc = useQueryClient();
   const entrada = useRef<HTMLInputElement>(null);
   const subir = useMutation({
-    mutationFn: async (archivos: File[]) => {
-      for (const f of archivos) {
-        const d = new FormData();
-        d.append('archivo', f);
-        await api(`/api/tickets/${t.id}/adjuntos`, { metodo: 'POST', cuerpo: d });
-      }
-    },
-    onSettled: () => qc.invalidateQueries({ queryKey: claves.detalles }),
+    mutationFn: (archivos: File[]) =>
+      subirArchivos(`/api/tickets/${t.id}/adjuntos`, archivos, () => void qc.invalidateQueries({ queryKey: claves.detalles })),
   });
   return (
-    <section className="tarjeta p-4">
-      <h2 className="mb-2">Adjuntos</h2>
-      {t.adjuntos.length ? <GaleriaAdjuntos adjuntos={t.adjuntos} /> : <p className="text-sm text-suave">Sin archivos.</p>}
+    <>
+      {t.adjuntos.length ? <GaleriaAdjuntos adjuntos={t.adjuntos} /> : <p className="text-suave">Sin archivos.</p>}
       {puedeSubir && (
         <>
           <button type="button" className={`${estilosBoton({ variante: 'secundario', tamano: 'sm' })} mt-3`} onClick={() => entrada.current?.click()} disabled={subir.isPending}>
@@ -340,6 +363,6 @@ function Archivos({ ticket: t, puedeSubir, maxMb }: { ticket: TicketDetalle; pue
           />
         </>
       )}
-    </section>
+    </>
   );
 }

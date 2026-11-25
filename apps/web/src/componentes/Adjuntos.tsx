@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, FileText, Paperclip, Upload, X } from 'lucide-react';
+import { Download, FileText, Paperclip, X } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Adjunto } from '@eco/shared/schemas';
+import { api } from '../lib/api';
 import { archivosPegados, esImagen, formatearBytes, separarPorTamano } from '../lib/adjuntos';
 import { cn } from '../lib/cn';
 import { Boton } from './ui/basicos';
@@ -12,6 +13,32 @@ export function agregarArchivos(actuales: File[], nuevos: File[], maxMb: number)
   for (const r of rechazados)
     toast.error(`«${r.name}» ${r.size === 0 ? 'está vacío' : `supera el máximo de ${maxMb} MB`}.`);
   return [...actuales, ...aceptados];
+}
+
+/**
+ * Sube los archivos de a uno. Los que fallan se avisan con un botón para reintentarlos.
+ * `listo` se llama después de cada tanda para refrescar la pantalla.
+ */
+export async function subirArchivos(url: string, archivos: File[], listo: () => void): Promise<void> {
+  const fallidos: File[] = [];
+  let motivo = '';
+  for (const f of archivos) {
+    const datos = new FormData();
+    datos.append('archivo', f);
+    try {
+      await api<Adjunto>(url, { metodo: 'POST', cuerpo: datos });
+    } catch (e) {
+      fallidos.push(f);
+      motivo = e instanceof Error ? e.message : '';
+    }
+  }
+  listo();
+  if (!fallidos.length) return;
+  toast.error(`No se pudo adjuntar: ${fallidos.map((f) => f.name).join(', ')}.`, {
+    description: motivo,
+    duration: Infinity,
+    action: { label: 'Reintentar', onClick: () => void subirArchivos(url, fallidos, listo) },
+  });
 }
 
 export function ListaArchivos({ archivos, quitar }: { archivos: File[]; quitar: (i: number) => void }) {
@@ -43,7 +70,7 @@ export function ListaArchivos({ archivos, quitar }: { archivos: File[]; quitar: 
   );
 }
 
-/** Zona para arrastrar, elegir o pegar (Ctrl+V en cualquier parte de la pantalla). */
+/** Botón para adjuntar; también admite arrastrar archivos y pegar capturas (Ctrl+V en toda la pantalla). */
 export function ZonaAdjuntos({ archivos, cambiar, maxMb }: { archivos: File[]; cambiar: (a: File[]) => void; maxMb: number }) {
   const [encima, setEncima] = useState(false);
   const entrada = useRef<HTMLInputElement>(null);
@@ -63,44 +90,45 @@ export function ZonaAdjuntos({ archivos, cambiar, maxMb }: { archivos: File[]; c
   }, []);
 
   return (
-    <div className="flex flex-col gap-2">
-      <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setEncima(true);
-        }}
-        onDragLeave={() => setEncima(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setEncima(false);
-          cambiar(agregarArchivos(archivos, Array.from(e.dataTransfer.files), maxMb));
-        }}
-        className={cn(
-          'flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-borde-fuerte p-4 text-center text-sm',
-          encima && 'border-primario bg-primario-suave text-primario-sobre-suave',
-        )}
-      >
-        <Upload aria-hidden className="size-6" />
-        <p>Arrastre archivos aquí o pegue una captura con Ctrl+V.</p>
-        <Boton variante="secundario" tamano="sm" onClick={() => entrada.current?.click()}>
-          <Paperclip aria-hidden className="size-4" />
-          Elegir archivos
-        </Boton>
-        <p className="text-xs">Hasta {maxMb} MB por archivo.</p>
-        <input
-          ref={entrada}
-          type="file"
-          multiple
-          className="sr-only"
-          tabIndex={-1}
-          aria-label="Adjuntar archivos"
-          onChange={(e) => {
-            cambiar(agregarArchivos(archivos, Array.from(e.target.files ?? []), maxMb));
-            e.target.value = '';
-          }}
-        />
-      </div>
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setEncima(true);
+      }}
+      onDragLeave={() => setEncima(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setEncima(false);
+        cambiar(agregarArchivos(archivos, Array.from(e.dataTransfer.files), maxMb));
+      }}
+      className={cn(
+        'flex flex-col gap-2 rounded-lg border-2 border-dashed border-transparent',
+        encima && 'border-primario bg-primario-suave text-primario-sobre-suave',
+      )}
+    >
       <ListaArchivos archivos={archivos} quitar={(i) => cambiar(archivos.filter((_, j) => j !== i))} />
+      <Boton
+        variante="secundario"
+        tamano="sm"
+        className="self-start"
+        title={`Hasta ${maxMb} MB por archivo. También puede arrastrarlos o pegar una captura con Ctrl+V.`}
+        onClick={() => entrada.current?.click()}
+      >
+        <Paperclip aria-hidden className="size-4" />
+        Adjuntar archivos o capturas
+      </Boton>
+      <input
+        ref={entrada}
+        type="file"
+        multiple
+        className="sr-only"
+        tabIndex={-1}
+        aria-label="Adjuntar archivos"
+        onChange={(e) => {
+          cambiar(agregarArchivos(archivos, Array.from(e.target.files ?? []), maxMb));
+          e.target.value = '';
+        }}
+      />
     </div>
   );
 }

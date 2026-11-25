@@ -42,6 +42,8 @@ export function buscarTicket(qc: QueryClient, id: string): TicketResumen | undef
 
 const colas = new Map<string, Promise<unknown>>();
 const generaciones = new Map<string, number>();
+/** Última versión que produjo un cambio propio: la usan los cambios encolados detrás de él. */
+const propias = new Map<string, number>();
 
 export interface Mutacion<R extends TicketResumen> {
   id: string;
@@ -70,16 +72,19 @@ export function mutarTicket<R extends TicketResumen>(qc: QueryClient, m: Mutacio
     void qc.invalidateQueries({ queryKey: claves.detalles });
   };
 
+  // La versión sobre la que decidió la persona: si otro cambia el pedido antes del envío, hay conflicto.
+  const vista = previo?.version ?? 0;
   const ejecutar = async (): Promise<R | null> => {
     // Un fallo anterior sobre el mismo ticket anula lo encolado detrás.
     if ((generaciones.get(m.id) ?? 0) !== generacion) {
       revertir();
       return null;
     }
-    const version = buscarTicket(qc, m.id)?.version ?? previo?.version ?? 0;
+    const version = Math.max(vista, propias.get(m.id) ?? 0);
     try {
       const r = await m.enviar(version);
       quitarParche(m.id, token);
+      propias.set(m.id, r.version);
       // Si ya llegó algo más nuevo, el parche pudo haber tapado sus valores: se vuelve a pedir.
       if ((buscarTicket(qc, m.id)?.version ?? 0) > r.version) {
         void qc.invalidateQueries({ queryKey: claves.tickets });

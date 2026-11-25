@@ -2,8 +2,8 @@ import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormE
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Lock, Paperclip, Send, Zap } from 'lucide-react';
 import { esStaff, formatearFechaHora } from '@eco/shared/dominio';
-import type { Adjunto, Mensaje, TicketDetalle, TicketEvento, UsuarioActual } from '@eco/shared/schemas';
-import { agregarArchivos, GaleriaAdjuntos, ListaArchivos } from '../../componentes/Adjuntos';
+import type { Mensaje, TicketDetalle, TicketEvento, UsuarioActual } from '@eco/shared/schemas';
+import { agregarArchivos, GaleriaAdjuntos, ListaArchivos, subirArchivos } from '../../componentes/Adjuntos';
 import { Avatar } from '../../componentes/insignias';
 import { Texto } from '../../componentes/Texto';
 import { Boton, Esqueletos, ErrorVista } from '../../componentes/ui/basicos';
@@ -12,7 +12,7 @@ import { useAlmacen } from '../../lib/almacen';
 import { api } from '../../lib/api';
 import { archivosPegados } from '../../lib/adjuntos';
 import { enviosPendientes, insertarMensaje, type DatosMensajes, type MensajeLocal } from '../../lib/cache';
-import { avisarError, claves, qEventos, qMensajes } from '../../lib/consultas';
+import { claves, qEventos, qMensajes } from '../../lib/consultas';
 import { cn } from '../../lib/cn';
 import { CanalEscritura } from '../../lib/escritura';
 import { useCatalogo } from '../../lib/hooks';
@@ -74,17 +74,10 @@ function useEnvio(ticketId: string, usuario: UsuarioActual) {
       fallidos.delete(e.clienteId);
       poner({ ...m, clienteId: m.clienteId ?? e.clienteId });
       if (!e.archivos.length) return;
-      for (const f of e.archivos) {
-        const d = new FormData();
-        d.append('archivo', f);
-        try {
-          await api<Adjunto>(`/api/tickets/${ticketId}/adjuntos?mensajeId=${m.id}`, { metodo: 'POST', cuerpo: d });
-        } catch (error) {
-          avisarError(error);
-        }
-      }
-      void qc.invalidateQueries({ queryKey: clave });
-      void qc.invalidateQueries({ queryKey: claves.detalles });
+      await subirArchivos(`/api/tickets/${ticketId}/adjuntos?mensajeId=${m.id}`, e.archivos, () => {
+        void qc.invalidateQueries({ queryKey: clave });
+        void qc.invalidateQueries({ queryKey: claves.detalles });
+      });
     },
     onError: (_e, envio) => {
       fallidos.set(envio.clienteId, envio);
@@ -139,9 +132,12 @@ export function Chat({ ticket, usuario, puedeEscribir }: { ticket: TicketDetalle
     () =>
       [
         ...(items ?? []).map((m) => ({ m, fecha: Date.parse(m.creadoAt) })),
-        ...(eventos ?? []).filter((e) => e.tipo !== 'creado').map((e) => ({ e, fecha: Date.parse(e.fecha) })),
+        ...(eventos ?? [])
+          // Quien pidió ayuda solo ve cómo avanza su pedido; el resto es detalle de gestión.
+          .filter((e) => e.tipo !== 'creado' && (esStaff(usuario) || ['estado', 'reabierto'].includes(e.tipo)))
+          .map((e) => ({ e, fecha: Date.parse(e.fecha) })),
       ].sort((a, b) => a.fecha - b.fecha),
-    [items, eventos],
+    [items, eventos, usuario],
   );
 
   const caja = useRef<HTMLDivElement>(null);
@@ -408,7 +404,7 @@ function Redactor({ ticketId, staff, enviar }: { ticketId: string; staff: boolea
       />
       <ListaArchivos archivos={archivos} quitar={(i) => setArchivos((a) => a.filter((_, j) => j !== i))} />
       <div className="flex flex-wrap items-center gap-2">
-        <Boton variante="secundario" tamano="sm" onClick={() => selector.current?.click()}>
+        <Boton variante="secundario" tamano="sm" onClick={() => selector.current?.click()} title="También puede pegar una captura con Ctrl+V">
           <Paperclip aria-hidden className="size-4" /> Adjuntar
         </Boton>
         <input
@@ -447,7 +443,6 @@ function Redactor({ ticketId, staff, enviar }: { ticketId: string; staff: boolea
             <ItemMenu alElegir={() => setAdministrar(true)}>Administrar respuestas…</ItemMenu>
           </Menu>
         )}
-        <span className="text-xs max-md:hidden">Enter envía · Mayús+Enter agrega una línea · admite Markdown</span>
         <Boton type="submit" className="ml-auto" data-testid="chat-enviar" disabled={!texto.trim() && !archivos.length}>
           <Send aria-hidden className="size-4" /> {interno ? 'Guardar nota' : 'Enviar'}
         </Boton>
