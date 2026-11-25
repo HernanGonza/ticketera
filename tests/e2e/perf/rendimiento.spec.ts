@@ -33,6 +33,14 @@ const resumen = (v: number[]) => ({
   max: Math.round(Math.max(...v)),
 });
 
+test('el worker de ALTCHA compilado es un archivo propio (la CSP bloquea data:)', async ({ abrir }) => {
+  const { page } = await abrir(null);
+  const creado = page.waitForEvent('worker');
+  await page.goto('/login');
+  await page.getByTestId('altcha').getByRole('checkbox').click();
+  expect((await creado).url()).toMatch(/^https?:\/\/[^/]+\/assets\/worker-[\w-]+\.js$/);
+});
+
 test('JavaScript transferido por pantalla', async ({ abrir }) => {
   const datos = await prepararDatos(await abrir(CUENTAS.tecnico), await abrir(CUENTAS.solicitante));
   const pesos = new Map<string, number>();
