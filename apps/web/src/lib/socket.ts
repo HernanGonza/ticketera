@@ -7,6 +7,7 @@ import {
   type EventosCliente,
   type EventosServidor,
 } from '@eco/shared/realtime';
+import { ponerAlDia } from './al-dia';
 import { refrescarSesion } from './api';
 import { crearManejadores, type ContextoVivo } from './eventos-vivo';
 import { canal, conexion, escribiendo, presencia, salas } from './vivo';
@@ -23,7 +24,10 @@ export function conectar(qc: QueryClient, ctx: ContextoVivo): () => void {
   let cerrado = false;
 
   const unirse = (sala: string) => {
-    if (socket.connected) socket.emit('sala:unirse', { sala }, () => {});
+    if (socket.connected)
+      socket.emit('sala:unirse', { sala }, ({ ok }) => {
+        if (ok && !cerrado) void ponerAlDia(qc, sala);
+      });
   };
   canal.unirse = unirse;
   canal.salir = (sala) => {
