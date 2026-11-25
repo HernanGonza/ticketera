@@ -8,14 +8,14 @@
 
 ## Fase 2 — Construcción
 - [x] db: esquema, migraciones, vistas, índices, seed, operaciones de dominio y consultas
-- [ ] backend: auth (portal, local, recupero, usuario-existe), tickets, mensajes, adjuntos, admin, estadísticas
+- [x] backend: auth (portal, local, recupero, usuario-existe), tickets, mensajes, adjuntos, admin, estadísticas
 - [ ] realtime-colas: Socket.IO, outbox, pg-boss, mails, SLA, autocierre, asignación, panel de colas
-- [ ] frontend: marca, shell, solicitante, kanban, lista, detalle con chat
+- [x] frontend: marca, shell, solicitante, kanban, lista, detalle con chat
 - [ ] Tests unitarios e integración verdes
 - [ ] Revisión de fase
 
 ## Fase 3 — Integración y tablero
-- [ ] Tablero de estadísticas, admin, notificaciones
+- [x] Tablero de estadísticas, admin, notificaciones
 - [ ] Integración completa API + worker + web
 - [ ] E2E (a) alta desde celular visible en vivo · (b) arrastre en vivo · (c) chat y "escribiendo" · (d) conflicto · (e) aislamiento
 - [ ] Revisión de fase

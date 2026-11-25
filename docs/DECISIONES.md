@@ -26,3 +26,11 @@
 | 22 | Códigos por tabla contadora (sin huecos); búsqueda con `pg_trgm` + `unaccent` | Secuencia por año | Correlatividad |
 | 23 | Permisos de Metabase aplicados en cada arranque con lista blanca (`docker/permisos-metabase.mjs`) | Script de init con default privileges | Nunca exponer hashes, sesiones ni notas internas |
 | 24 | Un usuario bloqueado por un administrador no se reactiva aunque Personal lo informe activo | Personal pisa siempre el estado | Seguridad: el bloqueo local debe persistir |
+| 25 | Cada pedido protegido (REST y socket) verifica en la base usuario activo, rol vigente y sesión no revocada | Confiar solo en el JWT corto | Revocación inmediata |
+| 26 | Bloqueo local (`usuarios.bloqueado`) separado del estado de Personal; cambiar rol o contraseña revoca sesiones | Un solo campo | Ver decisión 24 |
+| 27 | Quien no figura en Personal entra solo si ya tiene usuario local activo; si Personal borra en vez de desactivar, debe desactivarlo un administrador | Bloquear siempre | Cuentas técnicas y caídas de Personal |
+| 28 | Refresh de 7 días deslizantes (máximo 30), gracia de 10 s entre pestañas; el reuso revoca la familia | Refresh fijo | Seguridad sin cortes |
+| 29 | ALTCHA v1 con desafío de un solo uso; límites de intentos en memoria (una réplica de API) | Almacén compartido | Una sola réplica hoy; anotado como mejora |
+| 30 | `/api/auth/config` responde en producción sin accesos de desarrollo; `POST /auth/portal` exento de control de Origin | — | La web lo necesita; el POST llega desde el portal |
+| 31 | Diálogos y menús nativos en la web en lugar de Radix | Radix | Peso del paquete inicial |
+| 32 | La calificación se ofrece también en pedidos cerrados sin calificar | Solo `resuelto` | El enlace del mail debe funcionar tras el autocierre |
