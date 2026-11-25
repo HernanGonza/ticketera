@@ -17,6 +17,7 @@
     "db:migrate": "tsx src/db/cli.ts migrar",
     "db:seed": "tsx src/db/cli.ts seed",
     "db:reset": "tsx src/db/cli.ts reset",
+    "db:perf": "tsx src/db/cli.ts perf",
     "prod:migrate": "node dist/cli.js migrar",
     "prod:seed": "node dist/cli.js seed",
     "dev:token": "tsx src/auth/dev-token.ts"

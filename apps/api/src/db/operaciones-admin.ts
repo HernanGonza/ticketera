@@ -10,6 +10,7 @@ import {
 } from '@eco/shared/schemas';
 import type { z } from 'zod';
 import { ErrorHttp, noEncontrado } from '../errores';
+import { BLOQUEO } from './bloqueos';
 import type { Ejecutor, Tx } from './conexion';
 import { leerConfiguracion } from './configuracion';
 import { emitirEvento } from './eventos';
@@ -202,7 +203,7 @@ export interface CambiosUsuario {
 export async function actualizarUsuario(db: Ejecutor, id: string, cambios: CambiosUsuario): Promise<void> {
   await db.transaction(async (tx) => {
     // Serializa los cambios de administradores.
-    await tx.execute(sql`select pg_advisory_xact_lock(7316005)`);
+    await tx.execute(sql`select pg_advisory_xact_lock(${BLOQUEO.administradores})`);
     const [u] = await tx.select().from(usuarios).where(eq(usuarios.id, id)).for('update');
     if (!u) throw noEncontrado('El usuario');
     await exigirArea(tx, cambios.areaId);

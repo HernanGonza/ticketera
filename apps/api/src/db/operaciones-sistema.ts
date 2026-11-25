@@ -1,6 +1,7 @@
 /** Tareas del worker: publicación del outbox, alertas de SLA, autocierre y limpieza. */
 import { and, asc, eq, inArray, isNull, lte, sql } from 'drizzle-orm';
 import { estadoSla, type Calendario } from '@eco/shared/dominio';
+import { BLOQUEO } from './bloqueos';
 import type { Ejecutor, Tx } from './conexion';
 import { leerConfiguracion } from './configuracion';
 import { emitirEvento } from './eventos';
@@ -136,7 +137,7 @@ export async function revisarSla(db: Ejecutor, ahora: Date = new Date()): Promis
 /** Cierra un ticket resuelto cuyo plazo venció. Devuelve true si lo cerró. */
 export async function autocerrar(db: Ejecutor, ticketId: string, ahora: Date = new Date()): Promise<boolean> {
   return db.transaction(async (tx) => {
-    await tx.execute(sql`select pg_advisory_xact_lock(7316002)`);
+    await tx.execute(sql`select pg_advisory_xact_lock(${BLOQUEO.kanban})`);
     const [t] = await tx
       .select({ id: tickets.id })
       .from(tickets)

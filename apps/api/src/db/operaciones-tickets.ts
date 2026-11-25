@@ -18,15 +18,13 @@ import {
 import type { CambiosTicket } from '@eco/shared/eventos';
 import type { CampoExtra } from '@eco/shared/schemas';
 import { ErrorHttp, noEncontrado, sinPermiso } from '../errores';
+import { BLOQUEO } from './bloqueos';
 import type { Ejecutor, Tx } from './conexion';
 import { leerConfiguracion } from './configuracion';
 import { esUuid, obtenerTicketResumen } from './consultas';
 import { emitirEvento } from './eventos';
 import { categorias, ticketEventos, tickets, usuarios, type TicketFila } from './schema';
 
-/** Claves de advisory locks (de transacción). */
-const BLOQUEO_KANBAN = 7_316_002;
-const BLOQUEO_ASIGNACION = 7_316_003;
 const PASO_ORDEN = 1024;
 const PRECISION_MINIMA = 1e-6;
 
@@ -313,7 +311,7 @@ export async function actualizarTicket(
   return db.transaction(async (tx) => {
     // El bloqueo de orden se toma antes que el de la fila para que un rebalanceo no genere interbloqueos.
     if (cambios.estado !== undefined || cambios.asignadoId !== undefined || cambios.posicion)
-      await bloquear(tx, BLOQUEO_KANBAN);
+      await bloquear(tx, BLOQUEO.kanban);
     const t = await bloquearTicket(tx, ticketId);
     const ahora = opciones.ahora ?? new Date();
     const actorId = actor?.id ?? null;
@@ -551,8 +549,8 @@ export async function calificarTicket(
 export async function autoasignar(db: Ejecutor, ticketId: string, ahora?: Date): Promise<string | null> {
   if (!esUuid(ticketId)) return null;
   return db.transaction(async (tx) => {
-    await bloquear(tx, BLOQUEO_KANBAN);
-    await bloquear(tx, BLOQUEO_ASIGNACION);
+    await bloquear(tx, BLOQUEO.kanban);
+    await bloquear(tx, BLOQUEO.asignacion);
     const [t] = await tx.select().from(tickets).where(eq(tickets.id, ticketId)).for('update');
     if (!t || t.estado !== 'nuevo' || t.asignadoId) return null;
     const [c] = await tx.select().from(categorias).where(eq(categorias.id, t.categoriaId));

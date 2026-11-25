@@ -4,6 +4,7 @@ import { and, asc, count, eq, inArray, sql } from 'drizzle-orm';
 import { ESTADOS_ABIERTOS } from '@eco/shared/dominio';
 import { CONFIGURACION_DEFAULT, zPasswordNueva } from '@eco/shared/schemas';
 import type { Config } from '../../config';
+import { BLOQUEO } from '../bloqueos';
 import type { Ejecutor, Tx } from '../conexion';
 import { leerConfiguracion } from '../configuracion';
 import { areas, categorias, configuracion, notificaciones, respuestasRapidas, tickets, usuarios } from '../schema';
@@ -15,7 +16,6 @@ import { insertarPedidos, type Contexto, type Escenario } from './tickets';
 
 export * from './empleados';
 
-const BLOQUEO_SEED = 7_316_004;
 const SEMILLA = 20_240_101;
 
 export type ConfigSeed = Pick<Config, 'seedDemo' | 'ADMIN_EMAIL' | 'ADMIN_PASSWORD'>;
@@ -149,7 +149,7 @@ export async function sembrar(
   const claveAdmin = email && config.ADMIN_PASSWORD ? await hash(config.ADMIN_PASSWORD) : null;
 
   return db.transaction(async (tx) => {
-    await tx.execute(sql`select pg_advisory_xact_lock(${BLOQUEO_SEED})`);
+    await tx.execute(sql`select pg_advisory_xact_lock(${BLOQUEO.seed})`);
     const resultado: ResultadoSeed = { demo, usuariosCreados: 0, ticketsCreados: 0, avisos: [] };
     await sembrarBase(tx);
 
@@ -219,7 +219,7 @@ export async function sembrarTickets(
   opciones: { ahora?: Date; semilla?: number } = {},
 ): Promise<number> {
   return db.transaction(async (tx) => {
-    await tx.execute(sql`select pg_advisory_xact_lock(${BLOQUEO_SEED})`);
+    await tx.execute(sql`select pg_advisory_xact_lock(${BLOQUEO.seed})`);
     const [previos] = await tx.select({ n: count() }).from(tickets);
     const c = await contexto(tx, opciones.ahora ?? new Date(), opciones.semilla ?? SEMILLA + 1 + (previos?.n ?? 0));
     const estados: Escenario[] = ['nuevo', 'asignado', 'en_curso', 'en_espera'];

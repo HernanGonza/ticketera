@@ -51,6 +51,7 @@ export const USUARIOS_DEMO: (EmpleadoDemo & { rol: Rol })[] = [
     persona('julieta.kowalski', 'Julieta Kowalski', 7),
     persona('osvaldo.britez', 'Osvaldo Brítez', 8),
     persona('romina.schmidt', 'Romina Schmidt', 8),
+    persona('daniel.ibarra', 'Daniel Ibarra', 5),
   ]),
 ];
 

@@ -5,9 +5,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import pg from 'pg';
 import { RAIZ } from '../config';
-
-/** Clave del advisory lock que serializa migraciones concurrentes (api y worker arrancando a la vez). */
-const BLOQUEO_MIGRACION = 7_316_001;
+import { BLOQUEO } from './bloqueos';
 
 export function carpetaMigraciones(): string {
   const candidatas = [
@@ -27,7 +25,8 @@ export async function migrar(url: string): Promise<void> {
   cliente.on('notice', () => {});
   await cliente.connect();
   try {
-    await cliente.query('select pg_advisory_lock($1)', [BLOQUEO_MIGRACION]);
+    // Serializa migraciones concurrentes (api y worker arrancando a la vez).
+    await cliente.query('select pg_advisory_lock($1)', [BLOQUEO.migracion]);
     await migrate(drizzle(cliente), { migrationsFolder: carpetaMigraciones() });
   } finally {
     // Cerrar la sesión libera el advisory lock.
