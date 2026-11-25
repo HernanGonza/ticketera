@@ -1,0 +1,52 @@
+{
+  "name": "@eco/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./db": "./src/db/index.ts",
+    "./config": "./src/config.ts",
+    "./log": "./src/log.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/server.ts",
+    "build": "node ../../scripts/bundle.mjs api",
+    "start": "node dist/server.js",
+    "typecheck": "tsc -p tsconfig.json",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/cli.ts migrar",
+    "db:seed": "tsx src/db/cli.ts seed",
+    "db:reset": "tsx src/db/cli.ts reset",
+    "prod:migrate": "node dist/cli.js migrar",
+    "prod:seed": "node dist/cli.js seed",
+    "dev:token": "tsx src/auth/dev-token.ts"
+  },
+  "dependencies": {
+    "@eco/shared": "*",
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/multipart": "^10.0.0",
+    "@fastify/rate-limit": "^11.0.0",
+    "@fastify/swagger": "^9.5.0",
+    "@fastify/swagger-ui": "^6.0.0",
+    "@node-rs/argon2": "^2.0.2",
+    "@socket.io/postgres-adapter": "^0.5.0",
+    "altcha-lib": "^2.0.0",
+    "drizzle-orm": "^0.45.0",
+    "fastify": "^5.6.0",
+    "fastify-plugin": "^5.0.1",
+    "fastify-type-provider-zod": "^7.0.0",
+    "file-type": "^22.0.0",
+    "jose": "^6.0.0",
+    "pg": "^8.16.0",
+    "pg-boss": "^12.0.0",
+    "pino": "^10.0.0",
+    "socket.io": "^4.8.1",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.0",
+    "drizzle-kit": "^0.31.0",
+    "pino-pretty": "^13.0.0",
+    "socket.io-client": "^4.8.1"
+  }
+}

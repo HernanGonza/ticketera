@@ -1,0 +1,62 @@
+{
+  "name": "ecosoporte",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:api": "npm run dev -w @eco/api",
+    "dev:worker": "npm run dev -w @eco/worker",
+    "dev:web": "npm run dev -w @eco/web",
+    "dev:token": "npm run dev:token -w @eco/api --",
+    "db:start": "node scripts/postgres.mjs start",
+    "db:stop": "node scripts/postgres.mjs stop",
+    "db:generate": "npm run db:generate -w @eco/api",
+    "db:migrate": "node scripts/con-db.mjs db:migrate",
+    "db:seed": "node scripts/con-db.mjs db:seed",
+    "db:reset": "node scripts/con-db.mjs db:reset",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:int": "vitest run --project integracion",
+    "e2e": "node scripts/e2e.mjs",
+    "build": "npm run build -w @eco/web && npm run build -w @eco/api && npm run build -w @eco/worker",
+    "typecheck": "tsc -p tsconfig.json && npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f --tail=100",
+    "backup-db": "node scripts/backup-db.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "@eslint/js": "^10.0.0",
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^22.18.0",
+    "concurrently": "^10.0.0",
+    "cross-env": "^10.1.0",
+    "embedded-postgres": "16.16.0-beta.19",
+    "esbuild": "^0.28.0",
+    "eslint": "^10.0.0",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.0",
+    "vitest": "^4.1.0"
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "fsevents": true,
+    "@embedded-postgres/linux-x64": true,
+    "@embedded-postgres/linux-arm64": true,
+    "@embedded-postgres/darwin-x64": true,
+    "@embedded-postgres/darwin-arm64": true,
+    "@embedded-postgres/windows-x64": true
+  }
+}

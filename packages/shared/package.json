@@ -1,0 +1,17 @@
+{
+  "name": "@eco/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./marca": "./src/marca.ts",
+    "./dominio": "./src/dominio/index.ts",
+    "./schemas": "./src/schemas/index.ts",
+    "./realtime": "./src/realtime.ts",
+    "./colas": "./src/colas.ts",
+    "./eventos": "./src/eventos.ts"
+  },
+  "scripts": { "typecheck": "tsc -p tsconfig.json" },
+  "dependencies": { "zod": "^4.1.0" }
+}
