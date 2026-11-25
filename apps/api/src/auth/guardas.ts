@@ -1,5 +1,7 @@
+import { and, eq, gt, isNull, sql } from 'drizzle-orm';
 import type { preHandlerAsyncHookHandler } from 'fastify';
 import type { Rol, UsuarioSesion } from '@eco/shared/dominio';
+import { esUuid, sesiones, usuarios, type Ejecutor } from '../db';
 import { noAutenticado, sinPermiso } from '../errores';
 import { COOKIE_SESION, verificarSesion } from './sesion';
 
@@ -9,10 +11,49 @@ declare module 'fastify' {
   }
 }
 
+/**
+ * Usuario de un token de sesión contrastado con la base: debe seguir activo, con el mismo rol y con su
+ * sesión sin revocar. Nombre, correo y área salen de la base. Sirve también para Socket.IO.
+ */
+export async function usuarioVigente(db: Ejecutor, token: string, secreto: string): Promise<UsuarioSesion | null> {
+  const t = await verificarSesion(token, secreto);
+  if (!t || !esUuid(t.id) || (t.familia !== undefined && !esUuid(t.familia))) return null;
+  const [u] = await db
+    .select({
+      id: usuarios.id,
+      email: usuarios.email,
+      nombre: usuarios.nombre,
+      rol: usuarios.rol,
+      areaId: usuarios.areaId,
+    })
+    .from(usuarios)
+    .where(
+      and(
+        eq(usuarios.id, t.id),
+        eq(usuarios.activo, true),
+        t.familia
+          ? sql`exists (${db
+              .select({ uno: sql`1` })
+              .from(sesiones)
+              .where(
+                and(
+                  eq(sesiones.familia, t.familia),
+                  eq(sesiones.usuarioId, usuarios.id),
+                  isNull(sesiones.revocadoAt),
+                  gt(sesiones.expiraAt, new Date()),
+                ),
+              )})`
+          : undefined,
+      ),
+    );
+  return u && u.rol === t.rol ? u : null;
+}
+
+/** Usar como `onRequest` (así se rechaza antes de validar la entrada) o como `preHandler`. */
 export const exigirRol = (...roles: Rol[]): preHandlerAsyncHookHandler =>
   async function (req) {
     const token = req.cookies[COOKIE_SESION];
-    const u = token ? await verificarSesion(token, this.deps.config.SESSION_SECRET) : null;
+    const u = token ? await usuarioVigente(this.deps.conexion.db, token, this.deps.config.SESSION_SECRET) : null;
     if (!u) throw noAutenticado();
     if (roles.length && !roles.includes(u.rol)) throw sinPermiso();
     req.usuario = u;
