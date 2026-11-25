@@ -79,9 +79,20 @@ describe('autenticación', () => {
     await expect(c.desconectado()).resolves.toBe('io server disconnect');
   });
 
-  it('toma el rol de la base y no del token', async () => {
-    const c = await s.conectar({ ...pedro, rol: 'admin' });
+  it('toma el rol de la base: un token con otro rol obliga a refrescar', async () => {
+    expect(await rechazo({ cookie: await cookie({ ...pedro, rol: 'admin' }) })).toBe('no_autenticado');
+  });
+
+  it('vuelve a leer el rol al pedir una sala', async () => {
+    const c = await s.conectar(tecnico);
+    await e.db.update(usuarios).set({ rol: 'solicitante' }).where(eq(usuarios.id, tecnico.id));
     expect(await c.unirse(SALAS.tecnicos)).toBe(false);
+    await e.db.update(usuarios).set({ rol: 'tecnico' }).where(eq(usuarios.id, tecnico.id));
+  });
+
+  it('rechaza una sesión revocada', async () => {
+    const token = await firmarSesion(sofia, s.config.SESSION_SECRET, 60, '00000000-0000-4000-8000-000000000001');
+    expect(await rechazo({ cookie: `${COOKIE_SESION}=${token}` })).toBe('no_autenticado');
   });
 });
 

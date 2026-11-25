@@ -18,6 +18,7 @@ import {
   type EventosServidor,
   type UsuarioPresente,
 } from '@eco/shared/realtime';
+import { usuarioVigente } from '../auth/guardas';
 import { COOKIE_SESION, verificarSesion } from '../auth/sesion';
 import type { Config } from '../config';
 import { accesoTicket, leerConfiguracion, obtenerUsuarioSesion } from '../db';
@@ -280,7 +281,8 @@ export async function iniciarRealtime(servidor: ServidorHttp, deps: Deps, opcion
     try {
       const token = leerCookie(socket.handshake.headers.cookie, COOKIE_SESION);
       const sesion = token ? await verificarSesion(token, config.SESSION_SECRET) : null;
-      const u = sesion ? await obtenerUsuarioSesion(db, sesion.id) : null;
+      // La misma regla que REST: usuario activo, mismo rol y sesión sin revocar.
+      const u = token && sesion ? await usuarioVigente(db, token, config.SESSION_SECRET) : null;
       // `handshake` se copia a las otras réplicas (y a la tabla de adjuntos): sin credenciales.
       delete socket.handshake.headers.cookie;
       delete socket.handshake.headers.authorization;
