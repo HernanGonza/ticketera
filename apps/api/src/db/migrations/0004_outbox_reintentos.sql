@@ -1,0 +1,1 @@
+ALTER TABLE "outbox_eventos" ADD COLUMN "reintentar_at" timestamp with time zone;

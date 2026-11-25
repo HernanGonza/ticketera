@@ -345,6 +345,8 @@ export const outboxEventos = pgTable(
     publicadoAt: fecha('publicado_at'),
     intentos: integer('intentos').notNull().default(0),
     ultimoError: text('ultimo_error'),
+    /** Tras un fallo, no se reintenta antes de este momento. */
+    reintentarAt: fecha('reintentar_at'),
   },
   (t) => [
     index('outbox_pendientes_idx').on(t.id).where(sql`${t.publicadoAt} is null`),

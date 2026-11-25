@@ -24,3 +24,9 @@ export function crearLimitador(maximo: number, ventanaMs: number) {
   };
 }
 export type Limitador = ReturnType<typeof crearLimitador>;
+
+/** Cupo por usuario para las altas (usar como `preHandler`, ya autenticado). */
+export function limitarPorUsuario(maximoPorMinuto: number) {
+  const limitador = crearLimitador(maximoPorMinuto, 60_000);
+  return async (req: { usuario?: { id: string } }) => limitador.consumir(req.usuario!.id);
+}

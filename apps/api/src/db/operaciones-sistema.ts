@@ -1,5 +1,5 @@
 /** Tareas del worker: publicación del outbox, alertas de SLA, autocierre y limpieza. */
-import { and, asc, eq, inArray, isNull, lte, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import { estadoSla, type Calendario } from '@eco/shared/dominio';
 import { BLOQUEO } from './bloqueos';
 import type { Ejecutor, Tx } from './conexion';
@@ -17,11 +17,13 @@ import {
   type TicketFila,
 } from './schema';
 
-const MAX_INTENTOS_OUTBOX = 10;
+/** Espera tras cada fallo: 1 s, 2 s, 4 s… hasta una hora. */
+export const esperaOutboxMs = (intentos: number) => Math.min(1000 * 2 ** (intentos - 1), 3600_000);
 
 /**
  * Toma eventos pendientes en orden (`for update skip locked`, apto para varios procesos), llama a `manejar`
- * y marca `publicado_at`. Si falla, registra el error y reintenta luego; al décimo intento lo descarta.
+ * y marca `publicado_at`. Si falla, registra el error y lo reintenta con esperas crecientes: ningún evento
+ * se descarta.
  * Devuelve la cantidad publicada.
  */
 export async function procesarOutbox(
@@ -33,7 +35,12 @@ export async function procesarOutbox(
     const filas = await tx
       .select()
       .from(outboxEventos)
-      .where(isNull(outboxEventos.publicadoAt))
+      .where(
+        and(
+          isNull(outboxEventos.publicadoAt),
+          or(isNull(outboxEventos.reintentarAt), lte(outboxEventos.reintentarAt, new Date())),
+        ),
+      )
       .orderBy(asc(outboxEventos.id))
       .limit(limite)
       .for('update', { skipLocked: true });
@@ -49,7 +56,7 @@ export async function procesarOutbox(
           .set({
             intentos,
             ultimoError: (e instanceof Error ? e.message : String(e)).slice(0, 500),
-            publicadoAt: intentos >= MAX_INTENTOS_OUTBOX ? new Date() : null,
+            reintentarAt: new Date(Date.now() + esperaOutboxMs(intentos)),
           })
           .where(eq(outboxEventos.id, f.id));
       }

@@ -12,7 +12,7 @@ describe('migraciones', () => {
       await migrar(base.url);
       const c = conectar(base.url, 2);
       const r = await c.db.execute<{ n: number }>(sql`select count(*)::int as n from drizzle.__drizzle_migrations`);
-      expect(r.rows[0]!.n).toBe(4);
+      expect(r.rows[0]!.n).toBe(6);
       const ext = await c.db.execute(sql`select 1 from pg_extension where extname in ('pg_trgm', 'unaccent')`);
       expect(ext.rows).toHaveLength(2);
       for (const vista of [

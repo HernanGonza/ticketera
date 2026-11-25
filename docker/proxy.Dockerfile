@@ -13,7 +13,7 @@ COPY packages/shared packages/shared
 COPY apps/web apps/web
 RUN npm run build -w @eco/web
 
-FROM caddy:2-alpine
+FROM caddy:2.10-alpine
 COPY docker/Caddyfile /etc/caddy/Caddyfile
 COPY --from=construccion /app/apps/web/dist /srv
 RUN caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile

@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { esStaff } from '@eco/shared/dominio';
 import { zAdjunto } from '@eco/shared/schemas';
 import { exigirSesion, usuarioDe } from '../auth/guardas';
+import { limitarPorUsuario } from '../auth/limites';
 import { adjuntos, obtenerAdjunto, obtenerMensaje, registrarAdjunto, tickets } from '../db';
 import { ErrorHttp, noEncontrado, sinPermiso } from '../errores';
 import { clasificarArchivo, sanearNombre } from './archivos';
@@ -46,6 +47,7 @@ export const rutasAdjuntos: FastifyPluginAsyncZod = async (app) => {
     '/api/tickets/:id/adjuntos',
     {
       onRequest: exigirSesion,
+      preHandler: limitarPorUsuario(90),
       schema: {
         ...sesion,
         summary: 'Subir un archivo (multipart, campo `archivo`)',
@@ -87,6 +89,9 @@ export const rutasAdjuntos: FastifyPluginAsyncZod = async (app) => {
         const { size } = await stat(temporal);
         if (!size) throw invalido('El archivo está vacío.');
         const tipo = await clasificarArchivo(temporal, sanearNombre(parte.filename));
+        const { adjuntosPermitidos } = app.deps.config;
+        if (tipo && adjuntosPermitidos.length && !adjuntosPermitidos.includes(tipo.extension))
+          throw invalido(`El tipo de archivo no está permitido. Admitidos: ${adjuntosPermitidos.join(', ')}.`);
         if (!tipo)
           throw invalido(
             'El tipo de archivo no está permitido. Admitidos: imágenes, PDF, documentos de Office u OpenDocument, TXT, CSV, LOG, ZIP y MP4.',

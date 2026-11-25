@@ -3,7 +3,7 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { UsuarioActual } from '@eco/shared/schemas';
-import { obtenerUsuarioSesion, sesiones, type Ejecutor } from '../db';
+import { emitirEvento, obtenerUsuarioSesion, sesiones, type Ejecutor } from '../db';
 import type { Deps } from '../deps';
 import {
   COOKIE_REFRESH,
@@ -110,6 +110,8 @@ export async function renovarSesion(deps: Deps, req: FastifyRequest, reply: Fast
     // Reuso, sesión demasiado vieja o usuario inactivo: se revoca la familia (la transacción confirma).
     if ((s.usadoAt && !enGracia) || !usuario || ahora - inicio!.desde.getTime() > VIDA_MAXIMA_MS) {
       await revocarFamilia(tx, s.familia);
+      // Corta en el acto los sockets abiertos con esa sesión.
+      await emitirEvento(tx, 'usuario.acceso_cambiado', { usuarioId: s.usuarioId });
       return null;
     }
     if (enGracia) return { usuario, familia: s.familia, nuevo: null };

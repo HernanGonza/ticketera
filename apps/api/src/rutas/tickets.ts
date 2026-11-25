@@ -24,6 +24,7 @@ import {
   type TicketResumen,
 } from '@eco/shared/schemas';
 import { exigirSesion, exigirStaff, usuarioDe } from '../auth/guardas';
+import { limitarPorUsuario } from '../auth/limites';
 import {
   actualizarTicket,
   calificarTicket,
@@ -99,6 +100,7 @@ export const rutasTickets: FastifyPluginAsyncZod = async (app) => {
     '/api/tickets',
     {
       onRequest: exigirSesion,
+      preHandler: limitarPorUsuario(30),
       schema: { ...sesion, body: zCrearTicket, response: respuestas(zTicketDetalle, 201) },
     },
     async (req, reply) => {

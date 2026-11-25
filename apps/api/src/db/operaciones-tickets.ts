@@ -240,6 +240,8 @@ export async function crearTicket(
       });
     const extra = validarDatosCategoria(categoria.campos, datos.datos ?? {});
     const { calendario } = await leerConfiguracion(tx);
+    // Dos altas simultáneas no deben calcular la misma posición en la columna.
+    await bloquear(tx, BLOQUEO.kanban);
     const [fila] = await tx
       .insert(tickets)
       .values({

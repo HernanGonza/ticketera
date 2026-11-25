@@ -8,6 +8,8 @@ const config = cargarConfig();
 const conexion = conectar(config.DATABASE_URL);
 const app = await crearApp({ config, conexion });
 const realtime = await iniciarRealtime(app.server, { config, conexion });
+if (config.produccion && config.PORTAL_JWT_SECRET && !config.PORTAL_JWT_AUDIENCE)
+  app.log.warn('Sin PORTAL_JWT_AUDIENCE: se aceptan tokens del portal emitidos para otras aplicaciones.');
 await app.listen({ host: config.API_HOST, port: config.API_PORT });
 
 let cerrando = false;

@@ -54,6 +54,8 @@ const zEnv = z.object({
   SMTP_USER: texto,
   SMTP_PASSWORD: texto,
   MAIL_FROM: z.string().default('ECOsoporte <no-responder@ecologia.misiones.gob.ar>'),
+  /** Extensiones admitidas separadas por coma; vacío = todas las que el sistema sabe verificar. */
+  ADJUNTOS_PERMITIDOS: texto,
   SEED_DEMO: z.string().optional(),
   ADMIN_EMAIL: texto,
   ADMIN_PASSWORD: texto,
@@ -98,6 +100,7 @@ export function cargarConfig(env: Record<string, string | undefined> = process.e
     dataDir,
     uploadsDir: e.UPLOADS_DIR ? path.resolve(RAIZ, e.UPLOADS_DIR) : path.join(dataDir, 'uploads'),
     mailsDir: path.join(dataDir, 'mails'),
+    adjuntosPermitidos: e.ADJUNTOS_PERMITIDOS.toLowerCase().split(/[\s,.]+/).filter(Boolean),
     seedDemo: e.SEED_DEMO ? e.SEED_DEMO === 'true' : !produccion,
     portalLogoutUrl: e.PORTAL_LOGOUT_URL || e.PORTAL_URL,
   };

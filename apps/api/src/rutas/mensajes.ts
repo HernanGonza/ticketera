@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { esStaff } from '@eco/shared/dominio';
 import { zCrearMensaje, zEditarMensaje, zLectura, zMensaje, zOk } from '@eco/shared/schemas';
 import { exigirSesion, usuarioDe } from '../auth/guardas';
+import { limitarPorUsuario } from '../auth/limites';
 import { crearMensaje, editarMensaje, listarMensajes, marcarLeido, obtenerMensaje } from '../db';
 import { CON_SESION, respuestas, ticketEditable, ticketVisible, zParamUuid, zRefTicket } from './comun';
 
@@ -27,6 +28,7 @@ export const rutasMensajes: FastifyPluginAsyncZod = async (app) => {
     '/api/tickets/:id/mensajes',
     {
       onRequest: exigirSesion,
+      preHandler: limitarPorUsuario(90),
       schema: { ...sesion, params: zRefTicket, body: zCrearMensaje, response: respuestas(zMensaje, 201) },
     },
     async (req, reply) => {

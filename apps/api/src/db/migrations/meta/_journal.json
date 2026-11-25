@@ -29,6 +29,20 @@
       "when": 1795574552203,
       "tag": "0003_usuario_bloqueado",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795606525501,
+      "tag": "0004_outbox_reintentos",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795606527100,
+      "tag": "0005_historial_sin_borrado",
+      "breakpoints": true
     }
   ]
 }

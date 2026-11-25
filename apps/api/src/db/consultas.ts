@@ -314,6 +314,8 @@ export async function obtenerTicketDetalle(
     db,
     and(eq(adjuntos.ticketId, id), opciones.incluirInternos ? undefined : sql`not ${adjuntos.interno}`),
   );
+  // El correo del solicitante es un dato de gestión: solo lo recibe el personal de soporte.
+  if (!opciones.incluirInternos) extra.solicitanteEmail = '';
   return { ...resumen, ...extra, cerradoAt: isoN(extra.cerradoAt), adjuntos: lista };
 }
 

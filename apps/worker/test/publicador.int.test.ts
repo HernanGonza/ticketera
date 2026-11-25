@@ -1,5 +1,5 @@
 /** Extremo a extremo: operación de datos → outbox → publicador → adapter → cliente Socket.IO. */
-import { eq, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   actualizarTicket,
@@ -226,13 +226,14 @@ describe('resistencia', () => {
     limpiar();
     const id = await nuevoTicket();
     await tec.esperar('ticket:creado', (p) => p.ticket.id === id);
-    // Se reintenta y al décimo intento se descarta.
-    await hasta(
-      async () => (await e.db.select().from(outboxEventos).where(isNull(outboxEventos.publicadoAt))).length === 0,
-      25_000,
-    );
-    const [malo] = await e.db.select().from(outboxEventos).where(eq(outboxEventos.tipo, 'inexistente' as never));
-    expect(malo!.intentos).toBe(10);
-    expect(malo!.ultimoError).toContain('desconocido');
+    // Queda pendiente y se reintenta con esperas crecientes: no se descarta.
+    const buscar = async () =>
+      (await e.db.select().from(outboxEventos).where(eq(outboxEventos.tipo, 'inexistente' as never)))[0]!;
+    await hasta(async () => (await buscar()).intentos >= 2, 25_000);
+    const malo = await buscar();
+    expect(malo.publicadoAt).toBeNull();
+    expect(malo.reintentarAt).not.toBeNull();
+    expect(malo.ultimoError).toContain('desconocido');
+    await e.vaciarOutbox();
   });
 });

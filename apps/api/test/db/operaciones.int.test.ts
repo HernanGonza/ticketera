@@ -117,6 +117,9 @@ describe('outbox transaccional', () => {
     const [fallido, ok] = await e.outbox();
     expect(fallido).toMatchObject({ publicadoAt: null, intentos: 1, ultimoError: 'falló' });
     expect(ok!.publicadoAt).not.toBeNull();
+    // Espera antes de reintentar; pasado el plazo, vuelve a tomarlo.
+    expect(await procesarOutbox(e.db, async () => {})).toBe(0);
+    await e.db.execute(sql`update outbox_eventos set reintentar_at = now() - interval '1 second'`);
     expect(await procesarOutbox(e.db, async () => {})).toBe(1);
   });
 });
