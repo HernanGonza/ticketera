@@ -64,6 +64,7 @@ export function Campana() {
   const sinLeer = data?.sinLeer ?? 0;
   return (
     <Panel
+      titulo="Notificaciones"
       disparador={
         <Boton variante="fantasma" tamano="icono" className="relative" aria-label={`Notificaciones${sinLeer ? `: ${sinLeer} sin leer` : ''}`}>
           <Bell aria-hidden className="size-5" />

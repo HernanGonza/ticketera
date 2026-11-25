@@ -108,17 +108,17 @@ export function Lista() {
           <Contador n={noLeidos?.[t.id] ?? 0} etiqueta="mensajes sin leer" />
         </span>
       )),
-      col('titulo', (t) => <span className="line-clamp-2 min-w-48">{t.titulo}</span>),
+      col('titulo', (t) => <span className="line-clamp-3 min-w-36">{t.titulo}</span>),
       col('estado', (t) => <InsigniaEstado estado={t.estado} />),
       col('prioridad', (t) => <InsigniaPrioridad prioridad={t.prioridad} />),
       col('categoria', (t) => t.categoriaNombre),
       col('area', (t) => t.areaNombre ?? '—'),
       col('solicitante', (t) => t.solicitante.nombre),
       col('asignado', (t) => t.asignado?.nombre ?? <span className="text-suave">Sin asignar</span>),
-      col('creadoAt', (t) => <span className="whitespace-nowrap">{formatearFechaHora(t.creadoAt)}</span>),
-      col('actualizadoAt', (t) => <span className="whitespace-nowrap">{formatearFechaHora(t.actualizadoAt)}</span>),
+      col('creadoAt', (t) => formatearFechaHora(t.creadoAt)),
+      col('actualizadoAt', (t) => formatearFechaHora(t.actualizadoAt)),
       col('venceResolucionAt', (t) => (
-        <div className="min-w-40">
+        <div className="min-w-32">
           <BarraSla ticket={t} ahora={ahora} calendario={calendario} />
         </div>
       )),
@@ -183,7 +183,7 @@ export function Lista() {
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-borde bg-superficie-2 text-left">
-                  <th scope="col" className="w-10 p-2">
+                  <th scope="col" className="w-9 px-1.5 py-2">
                     <input
                       type="checkbox"
                       className="size-4 accent-primario"
@@ -200,7 +200,7 @@ export function Lista() {
                     const activo = orden === filtro.orden;
                     const I = !activo ? ArrowUpDown : filtro.dir === 'asc' ? ArrowUp : ArrowDown;
                     return (
-                      <th key={c.id} scope="col" className="p-2 font-semibold whitespace-nowrap" aria-sort={activo ? (filtro.dir === 'asc' ? 'ascending' : 'descending') : undefined}>
+                      <th key={c.id} scope="col" className="px-1.5 py-2 font-semibold whitespace-nowrap" aria-sort={activo ? (filtro.dir === 'asc' ? 'ascending' : 'descending') : undefined}>
                         {orden ? (
                           <button
                             type="button"
@@ -225,7 +225,7 @@ export function Lista() {
                     data-testid={`fila-${f.original.codigo}`}
                     className={cn('border-b border-borde last:border-0', f.getIsSelected() && 'bg-primario-suave text-primario-sobre-suave')}
                   >
-                    <td className="p-2">
+                    <td className="px-1.5 py-2">
                       <input
                         type="checkbox"
                         className="size-4 accent-primario"
@@ -235,7 +235,7 @@ export function Lista() {
                       />
                     </td>
                     {f.getVisibleCells().map((c) => (
-                      <td key={c.id} className="p-2 align-middle">
+                      <td key={c.id} className="px-1.5 py-2 align-middle">
                         {flexRender(c.column.columnDef.cell, c.getContext())}
                       </td>
                     ))}

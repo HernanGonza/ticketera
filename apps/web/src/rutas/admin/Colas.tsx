@@ -105,7 +105,7 @@ function Trabajos({ cola, estado, cambiarEstado }: { cola: string; estado: strin
             <li key={t.id} className="tarjeta flex flex-wrap items-start gap-2 p-3 text-sm">
               <div className="min-w-0 flex-1">
                 <p>
-                  <strong className={cn(t.estado === 'failed' && 'text-peligro')}>{ESTADOS[t.estado]}</strong> · intento {t.intentos} de {t.maxIntentos} ·{' '}
+                  <strong className={cn(t.estado === 'failed' && 'text-peligro')}>{ESTADOS[t.estado]}</strong> · reintentos: {t.intentos} de {t.maxIntentos} ·{' '}
                   {formatearFechaHora(t.creadoAt)}
                   {t.finalizadoAt && ` → ${formatearFechaHora(t.finalizadoAt)}`}
                 </p>

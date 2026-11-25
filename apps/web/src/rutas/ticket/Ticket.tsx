@@ -110,7 +110,8 @@ function Detalle({ ticket: t }: { ticket: TicketDetalle }) {
                 ['Área', t.areaNombre ?? '—'],
                 ['Ubicación / interno', t.ubicacion ?? '—'],
                 ['Asignado a', t.asignado?.nombre ?? 'Sin asignar'],
-                ['Solicitante', staff ? `${t.solicitante.nombre} (${t.solicitanteEmail})` : t.solicitante.nombre],
+                ['Solicitante', t.solicitante.nombre],
+                ...(staff ? [['Correo', t.solicitanteEmail]] : []),
                 ['Creado', formatearFechaHora(t.creadoAt)],
                 ...(t.resueltoAt ? [['Resuelto', formatearFechaHora(t.resueltoAt)]] : []),
                 ...(t.cerradoAt ? [['Cerrado', formatearFechaHora(t.cerradoAt)]] : []),
@@ -119,9 +120,9 @@ function Detalle({ ticket: t }: { ticket: TicketDetalle }) {
                   ? [['Calificación', `${t.calificacion} de 5${t.comentarioCalificacion ? ` · ${t.comentarioCalificacion}` : ''}`]]
                   : []),
               ].map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-3">
+                <div key={k} className="flex flex-wrap justify-between gap-x-3">
                   <dt className="shrink-0 text-suave">{k}</dt>
-                  <dd className="text-right break-words">{v}</dd>
+                  <dd className="ml-auto max-w-full text-right wrap-anywhere">{v}</dd>
                 </div>
               ))}
             </dl>

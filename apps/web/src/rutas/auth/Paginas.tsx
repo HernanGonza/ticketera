@@ -20,8 +20,10 @@ export function NoHabilitado() {
         </p>
         <p>
           Comuníquese con{' '}
-          <a href={`mailto:${EMAIL_CONTACTO}`} className="font-semibold break-all text-enlace underline">
-            {EMAIL_CONTACTO}
+          <a href={`mailto:${EMAIL_CONTACTO}`} className="font-semibold wrap-anywhere text-enlace underline">
+            {EMAIL_CONTACTO.split('@')[0]}@
+            <wbr />
+            {EMAIL_CONTACTO.split('@')[1]}
           </a>
           .
         </p>

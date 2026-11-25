@@ -229,7 +229,7 @@ export const TituloMenu = ({ children }: { children: ReactNode }) => (
 );
 export const SeparadorMenu = () => <div role="separator" className="my-1 h-px bg-borde" />;
 
-export function Panel({ disparador, children, className }: { disparador: ReactElement; children: (cerrar: () => void) => ReactNode; className?: string }) {
+export function Panel({ disparador, titulo, children, className }: { disparador: ReactElement; titulo: string; children: (cerrar: () => void) => ReactNode; className?: string }) {
   const f = useFlotante('end');
   return (
     <>
@@ -238,6 +238,7 @@ export function Panel({ disparador, children, className }: { disparador: ReactEl
         <div
           ref={f.contenido}
           role="dialog"
+          aria-label={titulo}
           tabIndex={-1}
           onKeyDown={(e) => e.key === 'Escape' && f.cerrar()}
           className={cn(
