@@ -7,6 +7,7 @@ import { formatearDuracion, formatearFecha } from '@eco/shared/dominio';
 import { SALAS } from '@eco/shared/realtime';
 import type { Estadisticas } from '@eco/shared/schemas';
 import { Boton, Encabezado, ErrorVista, Esqueletos } from '../../componentes/ui/basicos';
+import { ItemMenu, Menu } from '../../componentes/ui/flotantes';
 import { qEstadisticas } from '../../lib/consultas';
 import { cn } from '../../lib/cn';
 import { descargarCsv } from '../../lib/csv';
@@ -199,12 +200,18 @@ function TarjetaGrafico({ conjunto: c }: { conjunto: Conjunto }) {
           <Boton variante="fantasma" tamano="sm" aria-pressed={tabla} onClick={() => setTabla(!tabla)}>
             <Table2 aria-hidden className="size-4" /> {tabla ? 'Gráfico' : 'Tabla'}
           </Boton>
-          <Boton variante="fantasma" tamano="sm" aria-label={`Exportar CSV: ${c.titulo}`} onClick={() => descargarCsv(`${c.id}.csv`, [c.columnas, ...c.filas])}>
-            CSV
-          </Boton>
-          <Boton variante="fantasma" tamano="sm" aria-label={`Exportar PNG: ${c.titulo}`} disabled={tabla || vacio} onClick={() => void png(`${c.id}.png`, [c])}>
-            PNG
-          </Boton>
+          <Menu
+            disparador={
+              <Boton variante="fantasma" tamano="sm" aria-label={`Exportar: ${c.titulo}`}>
+                <Download aria-hidden className="size-4" />
+              </Boton>
+            }
+          >
+            <ItemMenu alElegir={() => descargarCsv(`${c.id}.csv`, [c.columnas, ...c.filas])}>Exportar CSV</ItemMenu>
+            <ItemMenu disabled={tabla || vacio} alElegir={() => void png(`${c.id}.png`, [c])}>
+              Exportar PNG
+            </ItemMenu>
+          </Menu>
         </div>
       </div>
       {vacio ? (

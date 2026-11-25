@@ -33,6 +33,7 @@ import {
   type Vecinos,
 } from '../../lib/kanban';
 import { mutarTicket } from '../../lib/optimista';
+import { preferencias } from '../../lib/preferencias';
 import { BarraAvatares } from './Avatares';
 import { Columna } from './Columna';
 import { anuncios, colisiones, coordenadasTeclado, instrucciones, type DatosDestino } from './dnd';
@@ -171,6 +172,7 @@ export function Kanban() {
 
   useEffect(() => {
     const tecla = (e: KeyboardEvent) => {
+      if (!preferencias.leer().atajos) return;
       const destino = e.target as HTMLElement;
       if (e.ctrlKey || e.metaKey || e.altKey || destino.closest('input, textarea, select, [contenteditable], [role=dialog], [role=menu]'))
         return;
@@ -191,13 +193,13 @@ export function Kanban() {
 
   return (
     <div className="flex h-[calc(100dvh-5.5rem)] min-h-[32rem] flex-col gap-3 md:h-[calc(100dvh-7rem)]">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1>Tablero Kanban</h1>
-        <Link to="/nuevo" className={estilosBoton({ tamano: 'sm' })} aria-keyshortcuts="n">
-          <Plus aria-hidden className="size-4" /> Nuevo pedido (n)
+      <div className="flex flex-wrap items-start gap-2">
+        <h1 className="sr-only">Tablero Kanban</h1>
+        <Filtros filtros={filtros} catalogo={catalogo} cambiar={cambiarFiltros} buscador={buscador} />
+        <Link to="/nuevo" className={estilosBoton({ tamano: 'sm' })} aria-keyshortcuts="n" title="Atajo: n">
+          <Plus aria-hidden className="size-4" /> Nuevo pedido
         </Link>
       </div>
-      <Filtros filtros={filtros} catalogo={catalogo} cambiar={cambiarFiltros} buscador={buscador} />
       <DndContext
         sensors={sensores}
         collisionDetection={colisiones}

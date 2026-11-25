@@ -5,7 +5,6 @@ import { EllipsisVertical, GripVertical } from 'lucide-react';
 import { COLUMNAS_KANBAN, ETIQUETA_ESTADO, puedeTransicionar, type Calendario, type Estado, type Rol } from '@eco/shared/dominio';
 import type { Persona, TicketResumen } from '@eco/shared/schemas';
 import { BarraSla } from '../../componentes/BarraSla';
-import { IconoCategoria } from '../../componentes/IconoCategoria';
 import { Avatar, Contador, InsigniaPrioridad } from '../../componentes/insignias';
 import { ItemMenu, Menu, SeparadorMenu, TituloMenu } from '../../componentes/ui/flotantes';
 import { cn } from '../../lib/cn';
@@ -92,7 +91,6 @@ export const ContenidoTarjeta = memo(function ContenidoTarjeta({ ticket: t, ahor
         {t.titulo}
       </Link>
       <div className="flex items-center gap-2 text-xs text-suave">
-        <IconoCategoria nombre={t.categoriaIcono} className="size-4 shrink-0" />
         <span className="min-w-0 flex-1 truncate">
           {t.categoriaNombre} · {t.areaNombre ?? 'Sin área'}
         </span>
@@ -126,7 +124,7 @@ export const TarjetaArrastrable = memo(function TarjetaArrastrable({
       {...puntero}
       data-testid={`tarjeta-${t.codigo}`}
       className={cn(
-        'tarjeta relative touch-manipulation p-2.5 select-none',
+        'group tarjeta relative touch-manipulation p-2.5 select-none',
         arrastre.isDragging ? 'opacity-40' : 'cursor-grab',
       )}
     >
@@ -136,7 +134,8 @@ export const TarjetaArrastrable = memo(function TarjetaArrastrable({
         ref={arrastre.setActivatorNodeRef}
         {...arrastre.attributes}
         onKeyDown={onKeyDown as ((e: KeyboardEvent) => void) | undefined}
-        className="absolute top-3.5 left-1.5 rounded-sm text-suave"
+        // El asa es para el teclado: con mouse o dedo se arrastra toda la tarjeta.
+        className="absolute top-3.5 left-1.5 rounded-sm text-suave opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
         aria-label={`Mover ${t.codigo}`}
       >
         <GripVertical aria-hidden className="size-4" />

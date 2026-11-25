@@ -9,7 +9,7 @@ import {
   type RowSelectionState,
   type VisibilityState,
 } from '@tanstack/react-table';
-import { ArrowDown, ArrowUp, ArrowUpDown, Columns3, Download } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Columns3, Download, SlidersHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   ESTADOS,
@@ -308,6 +308,11 @@ function FiltrosLista({ busqueda: s, cambiar }: { busqueda: BusquedaLista; cambi
     </select>
   );
 
+  const aplicados = [s.prioridad, s.areaId, s.categoriaId, s.asignadoId, s.sinAsignar, s.vencidos].filter(
+    (v) => v !== undefined,
+  ).length;
+  const [abierto, setAbierto] = useState(aplicados > 0);
+
   return (
     <div role="search" className="mb-3 flex flex-wrap items-center gap-2">
       <input type="search" aria-label="Buscar" placeholder="Buscar…" className="entrada !w-full sm:!w-56" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -317,6 +322,10 @@ function FiltrosLista({ busqueda: s, cambiar }: { busqueda: BusquedaLista; cambi
         ['area', 'De mi área'],
       ])}
       {multiple<Estado>('Estado', ESTADOS, ETIQUETA_ESTADO, s.estado, (estado) => cambiar({ estado }))}
+      <Boton variante="secundario" aria-expanded={abierto} aria-controls="filtros-lista" onClick={() => setAbierto(!abierto)}>
+        <SlidersHorizontal aria-hidden className="size-4" /> Filtros{aplicados ? ` (${aplicados})` : ''}
+      </Boton>
+      <div id="filtros-lista" hidden={!abierto} className={cn('w-full flex-wrap items-center gap-2', abierto && 'flex')}>
       {multiple<Prioridad>('Prioridad', PRIORIDADES, ETIQUETA_PRIORIDAD, s.prioridad, (prioridad) => cambiar({ prioridad }))}
       {selector('Área', s.areaId, (v) => cambiar({ areaId: Number(v) || undefined }), [['', 'Todas las áreas'], ...(catalogo?.areas.map((a) => [a.id, a.nombre] as [number, string]) ?? [])])}
       {selector('Categoría', s.categoriaId, (v) => cambiar({ categoriaId: Number(v) || undefined }), [['', 'Todas las categorías'], ...(catalogo?.categorias.map((c) => [c.id, c.nombre] as [number, string]) ?? [])])}
@@ -329,6 +338,7 @@ function FiltrosLista({ busqueda: s, cambiar }: { busqueda: BusquedaLista; cambi
         <input type="checkbox" className="size-4 accent-primario" checked={!!s.vencidos} onChange={(e) => cambiar({ vencidos: e.target.checked || undefined })} />
         Vencidos
       </label>
+      </div>
     </div>
   );
 }

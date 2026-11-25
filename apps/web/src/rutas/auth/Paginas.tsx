@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { EMAIL_CONTACTO, NOMBRE_SISTEMA } from '@eco/shared/marca';
@@ -44,6 +44,8 @@ export function Restablecer() {
   useTitulo(`Nueva contraseña · ${NOMBRE_SISTEMA}`);
   // Se lee del navegador para no alterar el token (el router interpreta valores numéricos).
   const [token] = useState(() => new URLSearchParams(window.location.search).get('token')?.replaceAll('"', '') ?? '');
+  // El enlace no debe quedar en la barra de direcciones ni en el historial.
+  useEffect(() => window.history.replaceState(window.history.state, '', window.location.pathname), []);
   const [password, setPassword] = useState('');
   const [repetida, setRepetida] = useState('');
   const [local, setLocal] = useState<{ password?: string; repetida?: string }>({});

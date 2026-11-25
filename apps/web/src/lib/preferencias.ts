@@ -5,8 +5,10 @@ export interface Preferencias {
   sonido: boolean;
   notificaciones: boolean;
   menuColapsado: boolean;
+  /** Atajos de una sola tecla en el tablero. */
+  atajos: boolean;
 }
-const DEFECTO: Preferencias = { tema: 'claro', sonido: false, notificaciones: false, menuColapsado: false };
+const DEFECTO: Preferencias = { tema: 'claro', sonido: false, notificaciones: false, menuColapsado: false, atajos: true };
 
 export const preferencias = crearAlmacen<Preferencias>({ ...DEFECTO, ...guardado.leer('preferencias', {}) });
 

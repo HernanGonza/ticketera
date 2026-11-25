@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState, type RefObject } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { ETIQUETA_PRIORIDAD, PRIORIDADES, type Prioridad } from '@eco/shared/dominio';
 import type { Catalogo } from '@eco/shared/schemas';
 import { Boton } from '../../componentes/ui/basicos';
@@ -49,10 +49,15 @@ export const Filtros = memo(function Filtros({
       {texto}
     </button>
   );
+  // Lo que está dentro del botón «Filtros»: se avisa cuántos hay aplicados.
+  const aplicados = [filtros.sinAsignar, filtros.vencidos, filtros.area, filtros.categoria, filtros.prioridad].filter(
+    (v) => v !== undefined,
+  ).length;
+  const [abierto, setAbierto] = useState(aplicados > 0);
   const hay = Object.values(filtros).some((v) => v !== undefined);
 
   return (
-    <div role="search" className="flex flex-wrap items-center gap-2">
+    <div role="search" className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
       <div className="relative w-full sm:w-64">
         <Search aria-hidden className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-suave" />
         <input
@@ -69,6 +74,10 @@ export const Filtros = memo(function Filtros({
         />
       </div>
       {alternar('mios', 'Mis tickets')}
+      <Boton variante="secundario" tamano="sm" aria-expanded={abierto} aria-controls="filtros-tablero" onClick={() => setAbierto(!abierto)}>
+        <SlidersHorizontal aria-hidden className="size-4" /> Filtros{aplicados > 0 ? ` (${aplicados})` : ''}
+      </Boton>
+      <div id="filtros-tablero" hidden={!abierto} className={cn('w-full flex-wrap items-center gap-2', abierto && 'flex')}>
       {alternar('sinAsignar', 'Sin asignar')}
       {alternar('vencidos', 'Vencidos')}
       <select aria-label="Área" className="entrada !w-auto max-w-48" value={filtros.area ?? ''} onChange={(e) => cambiar({ area: Number(e.target.value) || undefined })}>
@@ -106,6 +115,7 @@ export const Filtros = memo(function Filtros({
           <X aria-hidden className="size-4" /> Limpiar
         </Boton>
       )}
+      </div>
     </div>
   );
 });

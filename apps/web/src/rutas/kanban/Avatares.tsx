@@ -25,10 +25,19 @@ const Destino = memo(function Destino({ tecnico, arrastrando }: { tecnico: Perso
   );
 });
 
+/**
+ * Destinos para asignar soltando. Siempre montados (para medirlos) y flotando sobre el tablero, así no
+ * ocupan lugar ni mueven las columnas; solo se ven durante un arrastre.
+ */
 export const BarraAvatares = memo(function BarraAvatares({ tecnicos, arrastrando }: { tecnicos: Persona[]; arrastrando: boolean }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-suave max-lg:sr-only">Suelte un ticket para asignarlo:</span>
+    <div
+      className={cn(
+        'fixed bottom-4 left-1/2 z-40 flex max-w-[92vw] -translate-x-1/2 items-center gap-2 rounded-full border border-borde bg-superficie px-3 py-1 shadow-alta',
+        !arrastrando && 'pointer-events-none opacity-0',
+      )}
+    >
+      <span className="text-xs whitespace-nowrap text-suave max-lg:sr-only">Asignar a:</span>
       <ul aria-label="Técnicos" className="flex min-w-0 gap-2 overflow-x-auto p-1">
         {tecnicos.map((t) => (
           <Destino key={t.id} tecnico={t} arrastrando={arrastrando} />

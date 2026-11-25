@@ -47,14 +47,13 @@ function menuDe(u: UsuarioSesion): { titulo?: string; items: Item[] }[] {
   ];
   const grupos: { titulo?: string; items: Item[] }[] = [
     {
-      titulo: 'Gestión',
       items: [
         { to: '/kanban', texto: 'Tablero Kanban', icono: KanbanSquare },
         { to: '/lista', texto: 'Lista', icono: ListChecks },
         { to: '/tablero', texto: 'Estadísticas', icono: BarChart3 },
       ],
     },
-    { titulo: 'Mis pedidos', items: pedidos },
+    { items: pedidos },
   ];
   if (esAdmin(u))
     grupos.push({
@@ -74,7 +73,7 @@ function Navegacion({ usuario, colapsado, alElegir }: { usuario: UsuarioSesion; 
   return (
     <nav aria-label="Principal" className="flex flex-col gap-4">
       {menuDe(usuario).map((g, i) => (
-        <div key={i}>
+        <div key={i} className={cn(i > 0 && 'border-t border-borde pt-3')}>
           {g.titulo && !colapsado && <p className="mb-1 px-3 text-xs font-semibold text-suave">{g.titulo}</p>}
           <ul className="flex flex-col gap-0.5">
             {g.items.map(({ to, texto, icono: I }) => (
@@ -226,7 +225,7 @@ export function Armazon() {
           <aside
             className={cn(
               'sticky top-16 hidden h-[calc(100dvh-4rem)] shrink-0 flex-col justify-between gap-4 overflow-y-auto border-r border-borde bg-superficie p-2 md:flex',
-              colapsado ? 'w-16' : 'w-56',
+              colapsado ? 'w-16' : 'w-48',
             )}
           >
             <Navegacion usuario={usuario} colapsado={colapsado} />

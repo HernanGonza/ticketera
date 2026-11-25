@@ -150,6 +150,7 @@ function Preferencias({ cerrar, staff }: { cerrar: () => void; staff: boolean })
       {casilla('Tema oscuro', p.tema === 'oscuro', (v) => cambiarPreferencias({ tema: v ? 'oscuro' : 'claro' }))}
       {staff && (
         <>
+          {casilla('Atajos de teclado', p.atajos, (v) => cambiarPreferencias({ atajos: v }), 'En el tablero: «/» busca y «n» abre un pedido nuevo.')}
           {casilla(
             'Sonido de aviso',
             p.sonido,
