@@ -92,9 +92,9 @@ async function pgCtl() {
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   cargarEnv();
+  desactivarGanchosDeSalida();
   const orden = process.argv[2];
   if (orden === 'start') {
-    desactivarGanchosDeSalida();
     const { url, detener } = await iniciarPostgres();
     console.log(`Postgres escuchando en ${url}\nCtrl+C para detener.`);
     const latido = setInterval(() => {}, 60_000);
