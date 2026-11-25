@@ -57,7 +57,9 @@ Para cambiar `POSTGRES_PASSWORD` con la base ya creada, cámbiela primero en Pos
 carga datos iniciales y actualiza permisos), `worker` (misma imagen: mails, SLA, autocierre,
 asignación), `db` (PostgreSQL 16). Solo el proxy publica un puerto a la red.
 
-Volúmenes: `pgdata` (base) y `uploads` (adjuntos). `docker compose down -v` **los borra**.
+Volúmenes: `pgdata` (base), `uploads` (adjuntos) y `secretos` (claves generadas y contraseña inicial del
+administrador). `docker compose down -v` **los borra**. Si se pierde `secretos` se generan claves nuevas y
+todos deben volver a ingresar.
 
 En producción sin `SMTP_HOST` los correos no se envían ni se guardan: solo queda una advertencia en los
 registros del worker (llevan enlaces con credenciales).

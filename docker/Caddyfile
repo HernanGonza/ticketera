@@ -109,7 +109,8 @@
 			file_server
 		}
 
-		handle /fonts/* {
+		@estaticos path /fonts/* /marca/*
+		handle @estaticos {
 			root * {$WEB_ROOT:/srv}
 			import csp_web
 			@existe file

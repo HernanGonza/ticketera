@@ -98,9 +98,6 @@
   --conexion-no: #8a8d7f;
 
   /* Flor del Lapacho */
-  --flor-centro: var(--eco-lapacho);
-  --flor-borde: var(--eco-lapacho-claro);
-  --flor-nervadura: var(--eco-blanco);
   --firma-verde: var(--eco-verde);
 
   /* Gráficos (validados con el script de la guía de visualización) */

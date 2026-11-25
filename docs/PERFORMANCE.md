@@ -7,11 +7,11 @@ números completos en `test-results/rendimiento-*.json`.
 
 | Meta | Resultado | Estado |
 |---|---|---|
-| JavaScript inicial < 150 KB gzip | 117,4 KB (CSS inicial 8,3 KB) | Cumple |
-| LCP de `/login` < 1,5 s | 88 ms (mediana) | Cumple en local |
-| LCP del kanban < 1,5 s | 208 ms con datos de demostración; 224 ms con 576 pedidos abiertos | Cumple en local |
-| Arrastre fluido con 500 pedidos | 60 cuadros/s, peor cuadro 17 ms | Cumple (ver limitaciones) |
-| Mutación en A visible en B < 300 ms | mediana 22 a 28 ms, p95 26 a 39 ms | Cumple en local |
+| JavaScript inicial < 150 KB gzip | 117,4 KB (CSS inicial 8,4 KB) | Cumple |
+| LCP de `/login` < 1,5 s | 104 ms (mediana) | Cumple en local |
+| LCP del kanban < 1,5 s | 224 ms con datos de demostración; 260 ms con 576 pedidos abiertos | Cumple en local |
+| Arrastre fluido con 500 pedidos | 60 cuadros/s, peor cuadro 17 ms (33 ms con procesador 4 veces más lento) | Cumple (ver limitaciones) |
+| Mutación en A visible en B < 300 ms | mediana 23 a 30 ms, p95 32 a 50 ms | Cumple en local |
 
 Con red y procesador limitados (condición adicional, no exigida) el kanban con 576 pedidos supera los
 1,5 s: ver la tabla de carga.
@@ -42,9 +42,11 @@ Milisegundos, mediana / p95 de 7 muestras.
 
 | Caso | Red local: LCP | Red local: contenido | Limitada: LCP | Limitada: contenido |
 |---|---|---|---|---|
-| Ingreso | 88 / 92 | 105 / 118 | 516 / 520 | 553 / 564 |
-| Kanban, demostración | 208 / 216 | 198 / 209 | 1468 / **1512** | 1485 / 1529 |
-| Kanban, 576 pedidos | 224 / 240 | 220 / 237 | **1780 / 1820** | 1783 / 1823 |
+| Ingreso | 104 / 116 | 119 / 127 | 580 / 628 | 594 / 650 |
+| Kanban, demostración | 224 / 256 | 211 / 245 | **1512 / 1728** | 1527 / 1753 |
+| Kanban, 576 pedidos | 260 / 364 | 252 / 358 | **1864 / 1948** | 1864 / 1947 |
+
+La medición detrás de Caddy que sigue es anterior a la simplificación de pantallas.
 
 La respuesta de `GET /api/kanban` con 576 pedidos pesa unos 500 KB sin comprimir y `vite preview` no
 comprime lo que reenvía a la API. En producción Caddy sí la comprime: la misma medición contra el stack de
@@ -57,20 +59,20 @@ resueltos al tablero, paginar columnas o adelantar la descarga del fragmento del
 
 | Mutación | Muestras | Mediana | p95 | Máximo |
 |---|---|---|---|---|
-| Mensaje de chat | 30 | 28 ms | 39 ms | 43 ms |
-| Cambio de estado | 30 | 22 ms | 26 ms | 27 ms |
-| Arrastre en el tablero | 20 | 25 ms | 29 ms | 35 ms |
+| Mensaje de chat | 30 | 30 ms | 36 ms | 67 ms |
+| Cambio de estado | 30 | 23 ms | 32 ms | 82 ms |
+| Arrastre en el tablero | 20 | 27 ms | 50 ms | 58 ms |
 
-Detrás de Caddy los valores fueron equivalentes (p95 entre 31 y 44 ms).
+En la medición anterior detrás de Caddy los valores fueron equivalentes (p95 entre 31 y 44 ms).
 
 ## Arrastre con 576 pedidos
 
 | Procesador | Cuadros/s | Mediana | p95 | Peor | Hilo principal ocupado | Movimientos procesados |
 |---|---|---|---|---|---|---|
-| Normal | 60 | 16,7 ms | 17 ms | 17 ms | 32 % | 360 |
-| 4 veces más lento | 60 | 16,7 ms | 17 ms | 17 ms | 77 % | 254 |
+| Normal | 60 | 16,7 ms | 17 ms | 17 ms | 34 % | 359 |
+| 4 veces más lento | 59,5 | 16,7 ms | 17 ms | 33 ms | 77 % | 217 |
 
-Las columnas están virtualizadas: hay 48 tarjetas en el DOM de las 576.
+Las columnas están virtualizadas: hay 54 tarjetas en el DOM de las 576.
 
 ## JavaScript por pantalla
 
@@ -78,12 +80,12 @@ Total descargado al abrir cada pantalla en frío (incluye el inicial), KB gzip.
 
 | Pantalla | KB | Pantalla | KB |
 |---|---|---|---|
-| No habilitado, restablecer | 125,1 | Lista | 165,6 |
-| Recuperar contraseña | 146,8 | Administración: categorías | 173,2 |
-| Ingreso | 147,9 | Kanban | 183,4 |
-| Administración: áreas, configuración, colas, usuarios | 150,3 a 151,4 | Nuevo pedido | 192,2 |
-| Mis pedidos | 153,0 | Detalle de pedido | 210,8 |
-| | | Estadísticas (ECharts) | 343,9 |
+| No habilitado, restablecer | 124,8 | Lista | 166,2 |
+| Recuperar contraseña | 146,5 | Administración: categorías | 173,4 |
+| Ingreso | 147,6 | Kanban | 181,6 |
+| Administración: áreas, configuración, colas, usuarios | 150,4 a 151,5 | Nuevo pedido | 192,3 |
+| Mis pedidos | 155,2 | Detalle de pedido | 211,2 |
+| | | Estadísticas (ECharts) | 344,1 |
 
 La meta de 150 KB se refiere al paquete inicial; el resto se carga por pantalla.
 
