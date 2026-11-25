@@ -133,6 +133,9 @@ describe('/dev/mails', () => {
     const uno = await pedir('/dev/mails/20260101-000000-000_a%40b.test_hola.html');
     expect(uno.body).toBe('<p>Hola</p>');
     expect(uno.headers['content-security-policy']).toContain("default-src 'none'");
+    const largo = `20260101-000000-000_${'a'.repeat(60)}_${'b'.repeat(60)}_0000.html`;
+    await writeFile(path.join(carpeta, largo), '<p>Largo</p>');
+    expect((await pedir(`/dev/mails/${largo}`)).body).toBe('<p>Largo</p>');
     for (const malo of ['..%2Fsecreto.html', '%2E%2E%2Fsecreto.html', '..%5Csecreto.html', 'no-existe.html', '.env']) {
       const r = await pedir(`/dev/mails/${malo}`);
       expect(r.statusCode, malo).toBe(404);

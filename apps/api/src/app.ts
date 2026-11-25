@@ -50,6 +50,8 @@ export async function crearApp(deps: Deps, opciones: OpcionesApp = {}) {
   const app = Fastify({
     logger: { ...opcionesLog(deps.config.LOG_LEVEL), ...(opciones.log ? { stream: opciones.log } : {}) },
     trustProxy: deps.config.TRUST_PROXY,
+    // Los correos de /dev/mails se nombran con destinatario y asunto: superan los 100 caracteres por defecto.
+    routerOptions: { maxParamLength: 300 },
     // URL mal formada: respuesta genérica, sin repetirla (podría llevar un token).
     frameworkErrors: (_error, _req, reply) => {
       void (reply as unknown as FastifyReply).status(400).send({ error: 'validacion', mensaje: 'El pedido no es válido.' });
