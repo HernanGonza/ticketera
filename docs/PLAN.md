@@ -9,9 +9,9 @@
 ## Fase 2 — Construcción
 - [x] db: esquema, migraciones, vistas, índices, seed, operaciones de dominio y consultas
 - [x] backend: auth (portal, local, recupero, usuario-existe), tickets, mensajes, adjuntos, admin, estadísticas
-- [ ] realtime-colas: Socket.IO, outbox, pg-boss, mails, SLA, autocierre, asignación, panel de colas
+- [x] realtime-colas: Socket.IO, outbox, pg-boss, mails, SLA, autocierre, asignación, panel de colas
 - [x] frontend: marca, shell, solicitante, kanban, lista, detalle con chat
-- [ ] Tests unitarios e integración verdes
+- [x] Tests unitarios e integración verdes
 - [ ] Revisión de fase
 
 ## Fase 3 — Integración y tablero

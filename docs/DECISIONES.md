@@ -34,3 +34,7 @@
 | 30 | `/api/auth/config` responde en producción sin accesos de desarrollo; `POST /auth/portal` exento de control de Origin | — | La web lo necesita; el POST llega desde el portal |
 | 31 | Diálogos y menús nativos en la web en lugar de Radix | Radix | Peso del paquete inicial |
 | 32 | La calificación se ofrece también en pedidos cerrados sin calificar | Solo `resuelto` | El enlace del mail debe funcionar tras el autocierre |
+| 33 | Emisor de Socket.IO propio en el worker (`apps/worker/src/emisor.ts`) sobre `pg_notify` dentro de la transacción del publicador | `@socket.io/postgres-emitter` 0.1.1 | Incompatible con el adapter 0.5.0 (omite `nsp`, no entrega) |
+| 34 | Correos de mensajes con política `short` y demora de 120 s; fallidos visibles 14 días, sin cola de descarte | DLQ | El panel ya permite reintentar |
+| 35 | Notas internas: solo notificación en la app a staff, nunca correo | Mail a staff | Evitar fugas por reenvío |
+| 36 | En producción sin SMTP no se escribe ni envía correo (advertencia en log) | Escribir archivos | Contienen enlaces con token |
