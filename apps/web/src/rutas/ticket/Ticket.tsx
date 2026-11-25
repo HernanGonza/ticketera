@@ -96,7 +96,7 @@ function Detalle({ ticket: t }: { ticket: TicketDetalle }) {
             )}
           </section>
           <Acciones ticket={t} />
-          {esDueno && (t.estado === 'resuelto' || t.calificacion !== null) && <Calificacion ticket={t} />}
+          {esDueno && (t.estado === 'resuelto' || t.estado === 'cerrado' || t.calificacion !== null) && <Calificacion ticket={t} />}
           <Chat ticket={t} usuario={usuario} puedeEscribir={escribe} />
         </div>
         <aside className="flex flex-col gap-4" aria-label="Datos del pedido">
