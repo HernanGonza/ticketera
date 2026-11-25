@@ -1,6 +1,7 @@
 /** Servidor Socket.IO propio y clientes reales para las pruebas (sin las rutas del backend). */
-// Quien importe este archivo necesita cargar los tipos de Fastify que amplía `deps.ts`.
+// Quien importe este archivo necesita cargar los tipos de Fastify y de las cookies que usan `deps.ts` y `guardas.ts`.
 import type {} from 'fastify';
+import type {} from '@fastify/cookie';
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { io, type Socket } from 'socket.io-client';
