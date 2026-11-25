@@ -35,7 +35,7 @@ const zEnv = z.object({
   SESSION_SECRET: texto,
   COOKIE_SECURE: z.string().optional(),
   ALTCHA_HMAC_KEY: texto,
-  ALTCHA_COSTO: z.coerce.number().int().min(1).default(5000),
+  ALTCHA_COSTO: z.coerce.number().int().min(1).default(50_000),
   LOGIN_MAX_INTENTOS: z.coerce.number().int().min(1).default(10),
   PORTAL_URL: z.string().default('https://portal.ecologia.misiones.gob.ar'),
   PORTAL_LOGOUT_URL: texto,

@@ -58,6 +58,8 @@ export const usuarios = pgTable(
     rol: rolEnum('rol').notNull().default('solicitante'),
     passwordHash: text('password_hash'),
     activo: boolean('activo').notNull().default(true),
+    /** Bloqueo puesto por un administrador: Personal no puede reactivar al usuario (decisión 24). */
+    bloqueado: boolean('bloqueado').notNull().default(false),
     ultimoAcceso: fecha('ultimo_acceso'),
     creadoAt: fecha('creado_at').notNull().defaultNow(),
     actualizadoAt: fecha('actualizado_at').notNull().defaultNow(),

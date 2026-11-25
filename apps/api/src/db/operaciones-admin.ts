@@ -197,8 +197,9 @@ export interface CambiosUsuario {
 }
 
 /**
- * Modifica un usuario. Si pierde acceso o cambia de rol o área emite `usuario.acceso_cambiado`;
- * al desactivarlo o cambiar la contraseña revoca sus sesiones. No permite quedar sin administradores.
+ * Modifica un usuario. Si pierde acceso, cambia de rol, área o contraseña emite `usuario.acceso_cambiado`;
+ * al desactivarlo, cambiar su rol o su contraseña revoca sus sesiones. Desactivar deja el usuario
+ * `bloqueado` (Personal no lo reactiva) y activarlo quita el bloqueo. No permite quedar sin administradores.
  */
 export async function actualizarUsuario(db: Ejecutor, id: string, cambios: CambiosUsuario): Promise<void> {
   await db.transaction(async (tx) => {
@@ -218,13 +219,15 @@ export async function actualizarUsuario(db: Ejecutor, id: string, cambios: Cambi
         .limit(1);
       if (!otro) throw conflicto('Debe quedar al menos un administrador activo.');
     }
+    // El bloqueo solo nace de una desactivación explícita: guardar sin cambios a un inactivo no bloquea.
+    const bloqueado = cambios.activo === true ? false : u.activo && !activo ? true : u.bloqueado;
     await tx
       .update(usuarios)
-      .set({ ...cambios, actualizadoAt: new Date() })
+      .set({ ...cambios, bloqueado, actualizadoAt: new Date() })
       .where(eq(usuarios.id, id));
     const clave = cambios.passwordHash !== undefined && cambios.passwordHash !== u.passwordHash;
-    if ((u.activo && !activo) || clave) await revocarSesiones(tx, id);
-    if (rol !== u.rol || activo !== u.activo || areaId !== u.areaId)
+    if ((u.activo && !activo) || rol !== u.rol || clave) await revocarSesiones(tx, id);
+    if (rol !== u.rol || activo !== u.activo || areaId !== u.areaId || clave)
       await emitirEvento(tx, 'usuario.acceso_cambiado', { usuarioId: id });
     await catalogo(tx, 'usuarios');
   });
@@ -238,8 +241,9 @@ export interface EmpleadoPersonal {
 }
 
 /**
- * Ingreso por el portal: crea (como solicitante) o actualiza nombre, área y estado según Personal.
+ * Ingreso (portal o local): crea (como solicitante) o actualiza nombre, área y estado según Personal.
  * El área se vincula por nombre y se crea si falta. Un empleado inactivo sin usuario no se crea (null).
+ * Un usuario `bloqueado` por un administrador sigue inactivo.
  */
 export async function sincronizarUsuarioPersonal(db: Ejecutor, empleado: EmpleadoPersonal): Promise<string | null> {
   const email = empleado.email.trim().toLowerCase();
@@ -276,13 +280,14 @@ export async function sincronizarUsuarioPersonal(db: Ejecutor, empleado: Emplead
       await catalogo(tx, 'usuarios');
       return f!.id;
     }
-    if (u.nombre !== empleado.nombre || u.areaId !== areaId || u.activo !== empleado.activo) {
+    const activo = empleado.activo && !u.bloqueado;
+    if (u.nombre !== empleado.nombre || u.areaId !== areaId || u.activo !== activo) {
       await tx
         .update(usuarios)
-        .set({ nombre: empleado.nombre, areaId, activo: empleado.activo, actualizadoAt: new Date() })
+        .set({ nombre: empleado.nombre, areaId, activo, actualizadoAt: new Date() })
         .where(eq(usuarios.id, u.id));
-      if (u.activo && !empleado.activo) await revocarSesiones(tx, u.id);
-      if (u.areaId !== areaId || u.activo !== empleado.activo)
+      if (u.activo && !activo) await revocarSesiones(tx, u.id);
+      if (u.areaId !== areaId || u.activo !== activo)
         await emitirEvento(tx, 'usuario.acceso_cambiado', { usuarioId: u.id });
       await catalogo(tx, 'usuarios');
     }
