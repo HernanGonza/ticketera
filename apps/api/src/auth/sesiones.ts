@@ -73,11 +73,18 @@ export async function abrirSesion(
   return u;
 }
 
+/**
+ * Primero bloquea las filas: si hay una rotación en curso se la espera, y la actualización posterior ya ve
+ * el token que haya creado.
+ */
 const revocarFamilia = (db: Ejecutor, familia: string) =>
-  db
-    .update(sesiones)
-    .set({ revocadoAt: new Date() })
-    .where(and(eq(sesiones.familia, familia), isNull(sesiones.revocadoAt)));
+  db.transaction(async (tx) => {
+    await tx.select({ id: sesiones.id }).from(sesiones).where(eq(sesiones.familia, familia)).for('update');
+    await tx
+      .update(sesiones)
+      .set({ revocadoAt: new Date() })
+      .where(and(eq(sesiones.familia, familia), isNull(sesiones.revocadoAt)));
+  });
 
 /**
  * Rota el refresh. Un token ya usado fuera de la ventana de gracia revoca toda la familia; dentro de ella
