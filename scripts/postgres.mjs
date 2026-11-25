@@ -56,7 +56,33 @@ export async function iniciarPostgres({ dir = dirDatos(), port = puerto(), base 
   }
   const existe = await consultar(admin, 'select 1 from pg_database where datname = $1', [base]);
   if (!existe.rowCount) await consultar(admin, `create database "${base}"`);
-  return { url: urlDe(port, base), detener: async () => propio && (await propio.stop()) };
+  return { url: urlDe(port, base), detener: () => detenerPropio(propio) };
+}
+
+/**
+ * Detiene el servidor que inició este proceso. Si Postgres ya salió (p. ej. recibió la misma señal que
+ * el script), `stop()` de la librería quedaría esperando para siempre: por eso se verifica y se limita.
+ */
+async function detenerPropio(servidor) {
+  const proceso = servidor?.process;
+  if (!proceso || proceso.exitCode !== null || proceso.signalCode !== null) return;
+  let limite;
+  await Promise.race([
+    servidor.stop(),
+    new Promise((ok) => {
+      limite = setTimeout(ok, 10_000);
+    }),
+  ]);
+  clearTimeout(limite);
+}
+
+/**
+ * `embedded-postgres` registra ganchos de salida que apagan Postgres y llaman a `process.exit` por su
+ * cuenta, sin esperar a los procesos hijos. Los scripts que coordinan su propio apagado los quitan.
+ * Debe llamarse antes de registrar manejadores propios.
+ */
+export function desactivarGanchosDeSalida() {
+  for (const evento of ['SIGINT', 'SIGTERM', 'beforeExit', 'exit']) process.removeAllListeners(evento);
 }
 
 async function pgCtl() {
@@ -68,9 +94,19 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   cargarEnv();
   const orden = process.argv[2];
   if (orden === 'start') {
-    const { url } = await iniciarPostgres();
+    desactivarGanchosDeSalida();
+    const { url, detener } = await iniciarPostgres();
     console.log(`Postgres escuchando en ${url}\nCtrl+C para detener.`);
-    setInterval(() => {}, 60_000);
+    const latido = setInterval(() => {}, 60_000);
+    let apagando = false;
+    for (const senal of ['SIGINT', 'SIGTERM', 'SIGHUP'])
+      process.on(senal, async () => {
+        if (apagando) return;
+        apagando = true;
+        clearInterval(latido);
+        await detener().catch(() => {});
+        process.exit(0);
+      });
   } else if (orden === 'stop') {
     if (!existsSync(path.join(dirDatos(), 'postmaster.pid'))) console.log('Postgres no está en ejecución.');
     else execFileSync(await pgCtl(), ['stop', '-D', dirDatos(), '-m', 'fast'], { stdio: 'inherit' });

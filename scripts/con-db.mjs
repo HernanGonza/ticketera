@@ -1,8 +1,11 @@
 // Ejecuta un script db:* de la API garantizando que haya Postgres.
 import { cargarEnv, npm } from './comun.mjs';
-import { iniciarPostgres } from './postgres.mjs';
+import { desactivarGanchosDeSalida, iniciarPostgres } from './postgres.mjs';
 
 cargarEnv();
+desactivarGanchosDeSalida();
+// Ante Ctrl+C se espera a que termine el script hijo (que recibe la señal) para apagar Postgres.
+for (const senal of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(senal, () => {});
 const script = process.argv[2];
 let pg = null;
 if (!process.env.DATABASE_URL) {
