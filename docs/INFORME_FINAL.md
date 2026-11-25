@@ -38,9 +38,11 @@ los datos de demostración y 1,86 s con 576 pedidos.
 ## Revisión de seguridad
 
 Los dos hallazgos críticos (secretos de ejemplo aceptados en producción y cuentas de demostración con
-contraseña conocida) están corregidos y cubiertos por pruebas, igual que los altos y medios. Las decisiones
-están en `docs/DECISIONES.md` (39 a 45). La revisión independiente fue anterior a las correcciones: **no hubo
-una segunda revisión** de ellas ni de las pantallas simplificadas.
+contraseña conocida) están corregidos y cubiertos por pruebas. También se corrigieron los altos y medios, pero
+cuatro no tienen una prueba propia: la IP de origen en Caddy (A2), el conflicto de versión (M3), el selector
+manejado con flechas (M5) y el reintento de adjuntos (M6). Las decisiones están en `docs/DECISIONES.md`
+(39 a 45). La revisión independiente fue anterior a las correcciones: **no hubo una segunda revisión** de ellas
+ni de las pantallas simplificadas.
 
 ## Lo que no se probó
 
@@ -55,6 +57,8 @@ una segunda revisión** de ellas ni de las pantallas simplificadas.
 
 ## Pendientes conocidos
 
+- Hallazgos menores sin resolver: el menú de usuario y las dependencias sin uso del backend. El aviso de
+  diálogos sin nombre solo se inspeccionó (los vistos lo tienen) y no se cambió nada.
 - El worker no tiene control de salud en Compose.
 - La imagen de Metabase usa `latest`: conviene fijar una versión (`METABASE_IMAGE`).
 - Un evento del outbox que falle siempre se reintenta cada hora y solo se ve en los registros y en la tabla.
