@@ -50,7 +50,8 @@ asignación), `db` (PostgreSQL 16). Solo el proxy publica un puerto a la red.
 
 Volúmenes: `pgdata` (base) y `uploads` (adjuntos). `docker compose down -v` **los borra**.
 
-Sin `SMTP_HOST` los correos no se envían (quedan como archivos dentro del contenedor del worker).
+En producción sin `SMTP_HOST` los correos no se envían ni se guardan: solo queda una advertencia en los
+registros del worker (llevan enlaces con credenciales).
 
 ### Uso diario
 
