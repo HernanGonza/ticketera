@@ -1,0 +1,121 @@
+# Proxy de ECOsoporte: estáticos de la web y reenvío a la API.
+# Las variables con valor por defecto permiten probar este archivo fuera de Docker.
+{
+	admin off
+	auto_https off
+	persist_config off
+	servers {
+		# Por defecto no se confía en X-Forwarded-* del cliente. Si hay otro proxy delante (TLS),
+		# indique su IP o red en CADDY_TRUSTED_PROXIES.
+		trusted_proxies static {$CADDY_TRUSTED_PROXIES:127.0.0.1/32}
+	}
+	# Registro general (incluye errores del reenvío): sin tokens, correos ni encabezados.
+	log default {
+		format filter {
+			wrap json
+			fields {
+				request>uri query {
+					replace token oculto
+					replace email oculto
+				}
+				request>headers delete
+				resp_headers delete
+			}
+		}
+	}
+}
+
+# Encabezados de la aplicación web. ALTCHA resuelve el desafío en un Web Worker creado desde un blob;
+# React y ECharts usan estilos en línea; las vistas previas y exportaciones usan blob: y data:.
+(csp_web) {
+	header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data:; worker-src 'self' blob:; media-src 'self' blob:; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+}
+
+{$CADDY_SITE::80} {
+	log {
+		output stdout
+		format filter {
+			wrap json
+			fields {
+				request>uri query {
+					replace token oculto
+					replace email oculto
+				}
+				request>headers delete
+				resp_headers delete
+			}
+		}
+	}
+
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy same-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		Cross-Origin-Opener-Policy same-origin
+		-Server
+	}
+	# HSTS solo si se define HSTS (p. ej. "max-age=31536000"); actívelo únicamente sirviendo por HTTPS.
+	@con_hsts expression `{env.HSTS} != null && {env.HSTS} != ""`
+	header @con_hsts Strict-Transport-Security "{env.HSTS}"
+
+	route {
+		handle /healthz {
+			respond "ok" 200
+		}
+
+		# Las rutas de desarrollo nunca se publican.
+		@dev path /dev /dev/*
+		handle @dev {
+			respond 404
+		}
+
+		# Documentación OpenAPI: Swagger UI necesita estilos y un script en línea.
+		@docs path /api/docs /api/docs/*
+		handle @docs {
+			header ?Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+			reverse_proxy {$API_UPSTREAM:api:3000}
+		}
+
+		# Solo /auth/portal es de la API: /login, /recuperar, etc. son rutas de la web.
+		# /socket.io incluye la conexión WebSocket.
+		@api path /api /api/* /auth/portal /auth/portal/* /socket.io /socket.io/*
+		handle @api {
+			# El tamaño por archivo lo valida la API (configurable hasta 50 MB); esto deja margen al multipart.
+			request_body {
+				max_size {$MAX_SUBIDA:55MB}
+			}
+			# Solo si la API no definió la suya.
+			header ?Content-Security-Policy "default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'self'"
+			reverse_proxy {$API_UPSTREAM:api:3000}
+		}
+
+		# Archivos con hash en el nombre: caché permanente. Si no existen, 404 (no el index.html).
+		handle /assets/* {
+			root * {$WEB_ROOT:/srv}
+			import csp_web
+			@existe file
+			header @existe Cache-Control "public, max-age=31536000, immutable"
+			file_server
+		}
+
+		handle /fonts/* {
+			root * {$WEB_ROOT:/srv}
+			import csp_web
+			@existe file
+			header @existe Cache-Control "public, max-age=2592000"
+			file_server
+		}
+
+		# SPA: cualquier otra ruta entrega index.html, siempre revalidado.
+		handle {
+			root * {$WEB_ROOT:/srv}
+			import csp_web
+			header Cache-Control no-cache
+			try_files {path} /index.html
+			file_server
+		}
+	}
+}

@@ -1,0 +1,148 @@
+# ECOsoporte — despliegue:  cp .env.example .env && docker compose up -d --build
+# Detalle (Metabase, backups, restauración) en docs/OPERACION.md.
+name: ecosoporte
+
+x-registro: &registro
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '5'
+
+# Entorno común de la API y el worker. Lo definido acá tiene prioridad sobre `.env`.
+x-entorno-app: &entorno-app
+  NODE_ENV: production
+  TZ: America/Argentina/Buenos_Aires
+  APP_URL: ${APP_URL:-http://localhost:${APP_PORT:-8080}}
+  COOKIE_SECURE: ${COOKIE_SECURE:-true}
+  DATABASE_URL: postgres://ecosoporte:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD en .env}@db:5432/ecosoporte
+  DATA_DIR: /data
+  UPLOADS_DIR: /data/uploads
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ecosoporte
+      POSTGRES_DB: ecosoporte
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD en .env}
+      POSTGRES_INITDB_ARGS: --encoding=UTF8
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # Por TCP: el servidor temporal de la inicialización solo escucha en el socket local.
+      test: ['CMD', 'pg_isready', '-h', '127.0.0.1', '-U', 'ecosoporte', '-d', 'ecosoporte']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    shm_size: 128mb
+    networks: [datos]
+    logging: *registro
+
+  api:
+    image: ecosoporte-app:local
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      <<: *entorno-app
+      API_HOST: 0.0.0.0
+      API_PORT: '3000'
+      TRUST_PROXY: 'true'
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      # Incluye migraciones y carga de datos iniciales del primer arranque.
+      start_period: 120s
+    init: true
+    stop_grace_period: 20s
+    networks: [datos, web]
+    logging: *registro
+
+  worker:
+    # Misma imagen que la API (la construye el servicio `api`).
+    image: ecosoporte-app:local
+    pull_policy: never
+    command: ['node', 'apps/worker/dist/index.js']
+    restart: unless-stopped
+    env_file: .env
+    environment: *entorno-app
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    init: true
+    stop_grace_period: 30s
+    networks: [datos, web]
+    logging: *registro
+
+  proxy:
+    image: ecosoporte-proxy:local
+    build:
+      context: .
+      dockerfile: docker/proxy.Dockerfile
+    restart: unless-stopped
+    # Único servicio publicado hacia la red.
+    ports:
+      - '${APP_PORT:-8080}:80'
+    environment:
+      HSTS: ${HSTS:-}
+      CADDY_TRUSTED_PROXIES: ${CADDY_TRUSTED_PROXIES:-127.0.0.1/32}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1/healthz']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks: [web]
+    logging: *registro
+
+  # Estadísticas avanzadas (opcional):  docker compose --profile stats up -d
+  metabase:
+    image: ${METABASE_IMAGE:-metabase/metabase:latest}
+    profiles: [stats]
+    restart: unless-stopped
+    # Excepción a "solo el proxy publica puertos": accesible únicamente desde el propio servidor
+    # (por túnel SSH desde otro equipo).
+    ports:
+      - '127.0.0.1:${METABASE_PORT:-3030}:3000'
+    environment:
+      MB_DB_FILE: /metabase-data/metabase.db
+      JAVA_TIMEZONE: America/Argentina/Buenos_Aires
+      MB_ANON_TRACKING_ENABLED: 'false'
+    volumes:
+      - metabase-data:/metabase-data
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [datos, web]
+    logging: *registro
+
+networks:
+  # Sin salida a Internet: base de datos y quienes la consultan.
+  datos:
+    internal: true
+  # Proxy ↔ API, y salida a Internet (correo, portal, base de Personal).
+  web:
+
+volumes:
+  pgdata:
+  uploads:
+  metabase-data:

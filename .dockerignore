@@ -1,0 +1,25 @@
+# Contexto de construcción: solo fuentes y manifiestos.
+.git
+.claude
+.mcp.json
+.ignore
+graft
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+**/*.log
+
+# Datos locales y secretos
+.data
+.data-*
+**/.env
+**/.env.*
+backups
+
+# No necesarios en las imágenes
+docs
+tests
+test-results
+playwright-report
+blob-report
+coverage
