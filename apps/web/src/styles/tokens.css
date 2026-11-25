@@ -1,0 +1,212 @@
+/*
+ * Única fuente de color de la web. Base: tokens del Ministerio (brandbook 2024 y Wiki).
+ * Derivados: verdes, oliva, lapacho, ocres y tierras. Todo en hexadecimal para que
+ * test/contraste.test.ts pueda verificar WCAG AA en ambos modos.
+ */
+:root {
+  color-scheme: light;
+
+  /* Base de marca */
+  --eco-verde: #3e6c51;
+  --eco-texto: #231f20;
+  --eco-lapacho: #c9346c;
+  --eco-lapacho-claro: #f5a5bf;
+  --eco-beige: #f7f5f2;
+  --eco-blanco: #ffffff;
+
+  /* Superficies y texto */
+  --fondo: var(--eco-beige);
+  --superficie: var(--eco-blanco);
+  --superficie-2: #efece5;
+  --texto: var(--eco-texto);
+  --texto-suave: #586158;
+  --borde: #dedad0;
+  --borde-fuerte: #8a8d7f;
+  --foco: var(--eco-verde);
+  --velo: #231f2073;
+  --sombra-suave: 0 1px 2px #231f2014, 0 1px 3px #231f200f;
+  --sombra-alta: 0 12px 32px #231f202e;
+  --brillo: #ffffffb3;
+
+  /* Acciones */
+  --primario: var(--eco-verde);
+  --primario-fuerte: #2f553f;
+  --primario-texto: var(--eco-blanco);
+  --primario-suave: #e4ecdf;
+  --primario-sobre-suave: #23342c;
+  --enlace: #32604a;
+  --acento: #b82c61;
+  --acento-texto: var(--eco-blanco);
+  --acento-suave: #fbe3ea;
+  --acento-sobre-suave: #8f1f4b;
+  --peligro: #a8321f;
+  --peligro-texto: var(--eco-blanco);
+  --peligro-suave: #f9e2dc;
+  --peligro-sobre-suave: #86261a;
+  --aviso-suave: #f8ecd0;
+  --aviso-sobre-suave: #6b4706;
+  --exito-suave: #e0eed9;
+  --exito-sobre-suave: #23502f;
+  --nota-fondo: #fbf3cf;
+  --nota-borde: #a98a14;
+  --nota-texto: #231f20;
+
+  /* Estados (texto sobre fondo + color de marca gráfica) */
+  --estado-nuevo-fondo: #fbe3ea;
+  --estado-nuevo-texto: #8f1f4b;
+  --estado-nuevo: #c9346c;
+  --estado-asignado-fondo: #ecf0d6;
+  --estado-asignado-texto: #4b5a14;
+  --estado-asignado: #6f7e2d;
+  --estado-en_curso-fondo: #dcebe0;
+  --estado-en_curso-texto: #1f4a32;
+  --estado-en_curso: #3e6c51;
+  --estado-en_espera-fondo: #faebd3;
+  --estado-en_espera-texto: #7a4a08;
+  --estado-en_espera: #b57617;
+  --estado-resuelto-fondo: #23342c;
+  --estado-resuelto-texto: #e6efc9;
+  --estado-resuelto: #23342c;
+  --estado-cerrado-fondo: #e8e5dd;
+  --estado-cerrado-texto: #4a4743;
+  --estado-cerrado: #77736b;
+  --estado-cancelado-fondo: #f4e3da;
+  --estado-cancelado-texto: #7d3616;
+  --estado-cancelado: #b3582b;
+
+  /* Prioridades */
+  --prioridad-baja-fondo: #e8e5dd;
+  --prioridad-baja-texto: #4a4743;
+  --prioridad-baja: #8a8d7f;
+  --prioridad-media-fondo: #ecf0d6;
+  --prioridad-media-texto: #4b5a14;
+  --prioridad-media: #6f7e2d;
+  --prioridad-alta-fondo: #fbe6cf;
+  --prioridad-alta-texto: #82420a;
+  --prioridad-alta: #c26a14;
+  --prioridad-critica-fondo: #a8321f;
+  --prioridad-critica-texto: #ffffff;
+  --prioridad-critica: #a8321f;
+
+  /* SLA e indicadores */
+  --sla-ok: #3e7d52;
+  --sla-por_vencer: #b57617;
+  --sla-vencido: #a8321f;
+  --sla-pausado: #75786b;
+  --sla-cumplido: #23342c;
+  --conexion-si: #2e8b4f;
+  --conexion-no: #8a8d7f;
+
+  /* Flor del Lapacho */
+  --flor-centro: var(--eco-lapacho);
+  --flor-borde: var(--eco-lapacho-claro);
+  --flor-nervadura: var(--eco-blanco);
+  --firma-verde: var(--eco-verde);
+
+  /* Gráficos (validados con el script de la guía de visualización) */
+  --grafico-1: #277a4a;
+  --grafico-2: #d6457a;
+  --grafico-3: #c98a10;
+  --grafico-rejilla: #e4e1d9;
+  --grafico-eje: #8a8d7f;
+  --grafico-seq-0: #eef1e4;
+  --grafico-seq-1: #c9d9b6;
+  --grafico-seq-2: #93b889;
+  --grafico-seq-3: #55905f;
+  --grafico-seq-4: #23502f;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --fondo: #0f1713;
+  --superficie: #17211b;
+  --superficie-2: #1f2c24;
+  --texto: #ecf0ea;
+  --texto-suave: #a3b2a6;
+  --borde: #2a3b30;
+  --borde-fuerte: #66806e;
+  --foco: #9bcdae;
+  --velo: #000000a6;
+  --sombra-suave: 0 1px 2px #00000066;
+  --sombra-alta: 0 12px 32px #000000a6;
+  --brillo: #ffffff14;
+
+  --primario: #8cc2a0;
+  --primario-fuerte: #a6d3b7;
+  --primario-texto: #0f1713;
+  --primario-suave: #223a2c;
+  --primario-sobre-suave: #d5eadc;
+  --enlace: #9bcdae;
+  --acento: #f08cb0;
+  --acento-texto: #2a0b17;
+  --acento-suave: #3d1a2a;
+  --acento-sobre-suave: #f8bdd0;
+  --peligro: #f0917f;
+  --peligro-texto: #2b0d07;
+  --peligro-suave: #3f1d17;
+  --peligro-sobre-suave: #f7bcb0;
+  --aviso-suave: #3a2d10;
+  --aviso-sobre-suave: #f0d291;
+  --exito-suave: #1d3a26;
+  --exito-sobre-suave: #bce3c4;
+  --nota-fondo: #35300f;
+  --nota-borde: #bfa22a;
+  --nota-texto: #f4eecb;
+
+  --estado-nuevo-fondo: #43192c;
+  --estado-nuevo-texto: #f8bdd0;
+  --estado-nuevo: #e0628f;
+  --estado-asignado-fondo: #2f3714;
+  --estado-asignado-texto: #d8e3a4;
+  --estado-asignado: #a3b254;
+  --estado-en_curso-fondo: #1c3d2a;
+  --estado-en_curso-texto: #bfe3cb;
+  --estado-en_curso: #6fb58a;
+  --estado-en_espera-fondo: #40290b;
+  --estado-en_espera-texto: #f3cf94;
+  --estado-en_espera: #d49a3d;
+  --estado-resuelto-fondo: #c9d6a6;
+  --estado-resuelto-texto: #18261d;
+  --estado-resuelto: #c9d6a6;
+  --estado-cerrado-fondo: #2d302c;
+  --estado-cerrado-texto: #cfd1c9;
+  --estado-cerrado: #94978c;
+  --estado-cancelado-fondo: #3f2314;
+  --estado-cancelado-texto: #eebda2;
+  --estado-cancelado: #d07f52;
+
+  --prioridad-baja-fondo: #2d302c;
+  --prioridad-baja-texto: #cfd1c9;
+  --prioridad-baja: #94978c;
+  --prioridad-media-fondo: #2f3714;
+  --prioridad-media-texto: #d8e3a4;
+  --prioridad-media: #a3b254;
+  --prioridad-alta-fondo: #46260a;
+  --prioridad-alta-texto: #f6c692;
+  --prioridad-alta: #e08a36;
+  --prioridad-critica-fondo: #f0917f;
+  --prioridad-critica-texto: #2b0d07;
+  --prioridad-critica: #f0917f;
+
+  --sla-ok: #6fb58a;
+  --sla-por_vencer: #d49a3d;
+  --sla-vencido: #f0917f;
+  --sla-pausado: #94978c;
+  --sla-cumplido: #c9d6a6;
+  --conexion-si: #5fcf87;
+  --conexion-no: #94978c;
+
+  --firma-verde: #a6d3b7;
+
+  --grafico-1: #45a766;
+  --grafico-2: #cc3d74;
+  --grafico-3: #b57f14;
+  --grafico-rejilla: #28362d;
+  --grafico-eje: #66806e;
+  --grafico-seq-0: #1d2a22;
+  --grafico-seq-1: #24472f;
+  --grafico-seq-2: #33704a;
+  --grafico-seq-3: #55a06c;
+  --grafico-seq-4: #a8dcb4;
+}
