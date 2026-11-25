@@ -6,7 +6,6 @@
  * refrescar la sesión y llamar a `connect()`; las salas se vuelven a pedir en cada conexión.
  */
 import type { Server as ServidorHttp, IncomingMessage } from 'node:http';
-import fastifyCookie from '@fastify/cookie';
 import { createAdapter } from '@socket.io/postgres-adapter';
 import { Server, type Socket } from 'socket.io';
 import { z } from 'zod';
@@ -84,11 +83,20 @@ export function origenPermitido(origen: string | undefined, config: Pick<Config,
   }
 }
 
+/** Valor de una cookie de la cabecera. La de sesión es un JWT: no lleva caracteres escapados. */
+function leerCookie(cabecera: string | undefined, nombre: string): string | undefined {
+  for (const par of cabecera?.split(';') ?? []) {
+    const igual = par.indexOf('=');
+    if (igual > 0 && par.slice(0, igual).trim() === nombre) return par.slice(igual + 1).trim();
+  }
+  return undefined;
+}
+
 export async function iniciarRealtime(servidor: ServidorHttp, deps: Deps, opciones: OpcionesRealtime = {}) {
   const { config, conexion } = deps;
   const { db } = conexion;
   const log = crearLog('realtime', config.LOG_LEVEL);
-  const alFallar = (err: Error) => log.warn({ err: { message: err.message } }, 'Error en el canal entre réplicas');
+  const alFallar = (err: Error) => log.warn({ err }, 'Error en el canal entre réplicas');
 
   const pool = crearPoolAdapter(config.DATABASE_URL, alFallar);
   await asegurarTablaAdjuntos(pool);
@@ -115,7 +123,7 @@ export async function iniciarRealtime(servidor: ServidorHttp, deps: Deps, opcion
   const encolar = (socket: SocketEco, tarea: () => Promise<void>) => {
     const siguiente = (colas.get(socket) ?? Promise.resolve())
       .then(tarea)
-      .catch((err: Error) => log.error({ err: { message: err.message } }, 'Error al atender un socket'));
+      .catch((err: Error) => log.error({ err }, 'Error al atender un socket'));
     colas.set(socket, siguiente);
     return siguiente;
   };
@@ -162,7 +170,7 @@ export async function iniciarRealtime(servidor: ServidorHttp, deps: Deps, opcion
         soloCambios = false;
       } while (estado.sucio);
     } catch (err) {
-      log.warn({ err: { message: (err as Error).message } }, 'No se pudo calcular la presencia');
+      log.warn({ err }, 'No se pudo calcular la presencia');
     } finally {
       calculando.delete(ticketId);
     }
@@ -270,7 +278,7 @@ export async function iniciarRealtime(servidor: ServidorHttp, deps: Deps, opcion
 
   io.use(async (socket, next) => {
     try {
-      const token = fastifyCookie.parse(socket.handshake.headers.cookie ?? '')[COOKIE_SESION];
+      const token = leerCookie(socket.handshake.headers.cookie, COOKIE_SESION);
       const sesion = token ? await verificarSesion(token, config.SESSION_SECRET) : null;
       const u = sesion ? await obtenerUsuarioSesion(db, sesion.id) : null;
       // `handshake` se copia a las otras réplicas (y a la tabla de adjuntos): sin credenciales.
@@ -283,7 +291,7 @@ export async function iniciarRealtime(servidor: ServidorHttp, deps: Deps, opcion
       socket.data.expira = sesion.expira;
       next();
     } catch (err) {
-      log.error({ err: { message: (err as Error).message } }, 'No se pudo autenticar el socket');
+      log.error({ err }, 'No se pudo autenticar el socket');
       next(new Error(ERROR_SOCKET_INTERNO));
     }
   });
