@@ -4,6 +4,14 @@ Estado en `54baa40`: fases 1 a 3 construidas e integradas. Última corrida (repo
 `npm test` 384/384, typecheck/lint/build bien, E2E 84/84 dos veces, capturas 34/34, performance dentro de
 meta (`docs/PERFORMANCE.md`). Los agentes de corrección se detuvieron antes de commitear cambios.
 
+## 0. Pedido del usuario al pausar (prioridad al retomar)
+
+- **La UX/UI no está bien: tiene que ser más simple.** Revisar todas las pantallas con ese criterio (menos
+  elementos, controles y texto a la vista; flujos más directos). Las pruebas verdes no validan esto.
+- **Mis pedidos (empleados): los pedidos tienen que estar separados por estado** (secciones o pestañas por
+  estado, no una sola lista mezclada). Debe seguir siendo cómodo en celular.
+- Al hacerlo: actualizar los E2E y `data-testid` afectados, regenerar capturas y mostrárselas al usuario.
+
 ## 1. Correcciones de la revisión (pendientes)
 
 ### Seguridad y despliegue (backend)
