@@ -19,10 +19,13 @@ const TEXTOS = JSON.stringify({
 });
 
 let carga: Promise<string> | undefined;
-/** Versión "external": el worker y los estilos son archivos propios (compatible con CSP estricta). */
+/**
+ * Versión "external": el worker y los estilos son archivos propios (compatible con CSP estricta).
+ * `no-inline`: por su tamaño, Vite incrustaría el worker como `data:`, que la política bloquea.
+ */
 const cargar = () =>
   (carga ??= Promise.all([
-    import('altcha/worker?url'),
+    import('altcha/worker?url&no-inline'),
     import('altcha/external'),
     import('altcha/altcha.css'),
   ]).then(([w]) => w.default));
