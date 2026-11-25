@@ -9,9 +9,9 @@ números completos en `test-results/rendimiento-*.json`.
 |---|---|---|
 | JavaScript inicial < 150 KB gzip | 117,4 KB (CSS inicial 8,3 KB) | Cumple |
 | LCP de `/login` < 1,5 s | 88 ms (mediana) | Cumple en local |
-| LCP del kanban < 1,5 s | 212 ms con datos de demostración; 232 ms con 576 pedidos abiertos | Cumple en local |
+| LCP del kanban < 1,5 s | 208 ms con datos de demostración; 224 ms con 576 pedidos abiertos | Cumple en local |
 | Arrastre fluido con 500 pedidos | 60 cuadros/s, peor cuadro 17 ms | Cumple (ver limitaciones) |
-| Mutación en A visible en B < 300 ms | mediana 22 a 29 ms, p95 26 a 46 ms | Cumple en local |
+| Mutación en A visible en B < 300 ms | mediana 22 a 28 ms, p95 26 a 39 ms | Cumple en local |
 
 Con red y procesador limitados (condición adicional, no exigida) el kanban con 576 pedidos supera los
 1,5 s: ver la tabla de carga.
@@ -42,9 +42,9 @@ Milisegundos, mediana / p95 de 7 muestras.
 
 | Caso | Red local: LCP | Red local: contenido | Limitada: LCP | Limitada: contenido |
 |---|---|---|---|---|
-| Ingreso | 88 / 104 | 105 / 120 | 512 / 520 | 554 / 564 |
-| Kanban, demostración | 212 / 216 | 203 / 209 | 1448 / 1480 | 1462 / 1495 |
-| Kanban, 576 pedidos | 232 / 244 | 227 / 238 | **1784 / 1816** | 1781 / 1815 |
+| Ingreso | 88 / 92 | 105 / 118 | 516 / 520 | 553 / 564 |
+| Kanban, demostración | 208 / 216 | 198 / 209 | 1468 / **1512** | 1485 / 1529 |
+| Kanban, 576 pedidos | 224 / 240 | 220 / 237 | **1780 / 1820** | 1783 / 1823 |
 
 La respuesta de `GET /api/kanban` con 576 pedidos pesa unos 500 KB sin comprimir y `vite preview` no
 comprime lo que reenvía a la API. En producción Caddy sí la comprime: la misma medición contra el stack de
@@ -57,9 +57,9 @@ resueltos al tablero, paginar columnas o adelantar la descarga del fragmento del
 
 | Mutación | Muestras | Mediana | p95 | Máximo |
 |---|---|---|---|---|
-| Mensaje de chat | 30 | 29 ms | 46 ms | 50 ms |
-| Cambio de estado | 30 | 22 ms | 26 ms | 36 ms |
-| Arrastre en el tablero | 20 | 25 ms | 30 ms | 40 ms |
+| Mensaje de chat | 30 | 28 ms | 39 ms | 43 ms |
+| Cambio de estado | 30 | 22 ms | 26 ms | 27 ms |
+| Arrastre en el tablero | 20 | 25 ms | 29 ms | 35 ms |
 
 Detrás de Caddy los valores fueron equivalentes (p95 entre 31 y 44 ms).
 
@@ -68,7 +68,7 @@ Detrás de Caddy los valores fueron equivalentes (p95 entre 31 y 44 ms).
 | Procesador | Cuadros/s | Mediana | p95 | Peor | Hilo principal ocupado | Movimientos procesados |
 |---|---|---|---|---|---|---|
 | Normal | 60 | 16,7 ms | 17 ms | 17 ms | 32 % | 360 |
-| 4 veces más lento | 60 | 16,7 ms | 17 ms | 17 ms | 76 % | 265 |
+| 4 veces más lento | 60 | 16,7 ms | 17 ms | 17 ms | 77 % | 254 |
 
 Las columnas están virtualizadas: hay 48 tarjetas en el DOM de las 576.
 
