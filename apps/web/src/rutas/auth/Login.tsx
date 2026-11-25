@@ -34,7 +34,6 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [altcha, setAltcha] = useState('');
   const [intento, setIntento] = useState(0);
-  const [verCaptcha, setVerCaptcha] = useState(false);
 
   const ingresar = useMutation({
     mutationFn: (cuerpo: DatosLogin) => api<UsuarioActual>('/api/auth/login', { metodo: 'POST', cuerpo }),
@@ -76,7 +75,7 @@ export function Login() {
           o con su correo y contraseña
           <span className="h-px flex-1 bg-borde" />
         </div>
-        <form onSubmit={enviar} onFocus={() => setVerCaptcha(true)} className="flex flex-col gap-3">
+        <form onSubmit={enviar} className="flex flex-col gap-3">
           <Campo etiqueta="Correo electrónico">
             {(p) => (
               <input {...p} className="entrada" type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -87,15 +86,9 @@ export function Login() {
               <input {...p} className="entrada" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
             )}
           </Campo>
-          {verCaptcha ? (
-            <Suspense fallback={<div className="esqueleto h-14" />}>
-              <Altcha alVerificar={setAltcha} intento={intento} />
-            </Suspense>
-          ) : (
-            <Boton variante="secundario" onClick={() => setVerCaptcha(true)}>
-              Mostrar verificación
-            </Boton>
-          )}
+          <Suspense fallback={<div className="esqueleto h-14" />}>
+            <Altcha alVerificar={setAltcha} intento={intento} />
+          </Suspense>
           {ingresar.error && (
             <Alerta>
               {ingresar.error instanceof ErrorApiCliente ? ingresar.error.message : 'No se pudo ingresar.'}

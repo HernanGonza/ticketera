@@ -160,12 +160,11 @@ export function Armazon() {
         <Boton variante="fantasma" tamano="icono" className="md:hidden" aria-label="Abrir menú" onClick={() => setCajon(true)}>
           <IconoMenu aria-hidden className="size-5" />
         </Boton>
-        <Link to="/" className="flex items-center gap-4" aria-label={`${NOMBRE_SISTEMA}: ir al inicio`}>
-          <Firma compacta className="max-sm:hidden" />
-          <span aria-hidden className="h-8 w-px bg-borde-fuerte max-sm:hidden" />
-          <span className="text-xl">
-            <NombreSistema />
-          </span>
+        <Firma compacta className="max-sm:hidden" />
+        <span aria-hidden className="h-8 w-px bg-borde-fuerte max-sm:hidden" />
+        <Link to="/" className="rounded-md text-xl">
+          <NombreSistema />
+          <span className="sr-only">: ir al inicio</span>
         </Link>
         <div className="ml-auto flex items-center gap-1 md:gap-2">
           <Conexion />

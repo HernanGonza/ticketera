@@ -29,15 +29,17 @@ interface Envio {
 
 const nuevoId = () => `c-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
+/** Envíos fallidos: se conservan aunque se cambie de pantalla, para poder reintentarlos. */
+const fallidos = new Map<string, Envio>();
+
 function useEnvio(ticketId: string, usuario: UsuarioActual) {
   const qc = useQueryClient();
-  const fallidos = useRef(new Map<string, Envio>());
   const clave = claves.mensajes(ticketId);
   const poner = (m: MensajeLocal) =>
     qc.setQueryData<DatosMensajes>(clave, (d) => (d ? { ...d, items: insertarMensaje(d.items, m) } : { items: [m] }));
   const quitar = (clienteId: string) => {
     enviosPendientes.delete(clienteId);
-    fallidos.current.delete(clienteId);
+    fallidos.delete(clienteId);
     qc.setQueryData<DatosMensajes>(clave, (d) =>
       d ? { ...d, items: d.items.filter((m) => !(m.envio && m.clienteId === clienteId)) } : d,
     );
@@ -69,7 +71,7 @@ function useEnvio(ticketId: string, usuario: UsuarioActual) {
     },
     onSuccess: async (m, e) => {
       enviosPendientes.delete(e.clienteId);
-      fallidos.current.delete(e.clienteId);
+      fallidos.delete(e.clienteId);
       poner({ ...m, clienteId: m.clienteId ?? e.clienteId });
       if (!e.archivos.length) return;
       for (const f of e.archivos) {
@@ -85,7 +87,7 @@ function useEnvio(ticketId: string, usuario: UsuarioActual) {
       void qc.invalidateQueries({ queryKey: claves.detalles });
     },
     onError: (_e, envio) => {
-      fallidos.current.set(envio.clienteId, envio);
+      fallidos.set(envio.clienteId, envio);
       marcar(envio.clienteId, 'error');
     },
   });
@@ -93,7 +95,7 @@ function useEnvio(ticketId: string, usuario: UsuarioActual) {
   return {
     enviar: mutacion.mutate,
     reintentar: (clienteId: string) => {
-      const e = fallidos.current.get(clienteId);
+      const e = fallidos.get(clienteId);
       if (e) mutacion.mutate(e);
     },
     descartar: quitar,

@@ -19,7 +19,8 @@ const Destino = memo(function Destino({ tecnico, arrastrando }: { tecnico: Perso
       )}
     >
       <Avatar nombre={tecnico?.nombre ?? null} />
-      <span>{arrastrando || !tecnico ? nombre : nombre.split(' ')[0]}</span>
+      {/* El texto no cambia al arrastrar: los destinos no deben moverse bajo el puntero. */}
+      <span className="whitespace-nowrap">{nombre}</span>
     </li>
   );
 });

@@ -45,7 +45,8 @@ export function textoSla(s: SlaTicket): string {
   const meta = s.clase === 'respuesta' ? 'Respuesta' : 'Resolución';
   switch (s.semaforo) {
     case 'vencido':
-      return `${meta} vencida hace ${formatearDuracion(s.restanteMin)}`;
+      // Fuera del horario hábil el atraso todavía puede ser de cero minutos.
+      return s.restanteMin ? `${meta} vencida hace ${formatearDuracion(s.restanteMin)}` : `${meta} vencida`;
     case 'pausado':
       return `${meta} en pausa`;
     case 'cumplido':

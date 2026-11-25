@@ -10,6 +10,9 @@ export interface ValoresPedido {
   datos: ValoresCampos;
 }
 
+// La política de seguridad de contenidos no permite evaluar código: zod sin compilación dinámica.
+z.config({ jitless: true });
+
 const OBLIGATORIO = 'Complete este campo';
 
 function esquemaCampo(c: CampoExtra) {

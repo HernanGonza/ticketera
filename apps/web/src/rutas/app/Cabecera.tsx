@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { Bell, LogOut, MessageSquare, Moon, Settings, Sun } from 'lucide-react';
 import { toast } from 'sonner';
-import { ETIQUETA_ROL, formatearFechaHora } from '@eco/shared/dominio';
+import { ETIQUETA_ROL, formatearFechaHora, iniciales } from '@eco/shared/dominio';
 import type { UsuarioActual } from '@eco/shared/schemas';
 import { Avatar, Contador } from '../../componentes/insignias';
 import { Boton, Esqueletos } from '../../componentes/ui/basicos';
@@ -179,7 +179,7 @@ export function MenuUsuario({ usuario }: { usuario: UsuarioActual }) {
     <>
       <Menu
         disparador={
-          <button type="button" className="rounded-full" aria-label={`Menú de ${usuario.nombre}`} data-testid="menu-usuario">
+          <button type="button" className="rounded-full" aria-label={`${iniciales(usuario.nombre)}: menú de ${usuario.nombre}`} data-testid="menu-usuario">
             <Avatar nombre={usuario.nombre} className="size-9" />
           </button>
         }

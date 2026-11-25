@@ -25,7 +25,8 @@ export interface DatosTarjeta {
 
 interface PropsContenido extends DatosTarjeta {
   menu?: { acciones: AccionesTarjeta; tecnicos: Persona[]; rol: Rol };
-  asa?: React.ReactNode;
+  /** Reserva el lugar del asa, que dibuja el contenedor para no invalidar la memorización. */
+  conAsa?: boolean;
 }
 
 /** El menú (incluso su contenido en un portal) no debe iniciar arrastres. */
@@ -71,12 +72,11 @@ function MenuTarjeta({ ticket: t, acciones, tecnicos, rol }: { ticket: TicketRes
 }
 
 /** Contenido memorizado: durante un arrastre solo se actualiza el contenedor. */
-export const ContenidoTarjeta = memo(function ContenidoTarjeta({ ticket: t, ahora, calendario, noLeidos, menu, asa }: PropsContenido) {
+export const ContenidoTarjeta = memo(function ContenidoTarjeta({ ticket: t, ahora, calendario, noLeidos, menu, conAsa }: PropsContenido) {
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-1">
-        {asa}
-        <span className="text-xs font-bold text-suave">{t.codigo}</span>
+        <span className={cn('text-xs font-bold whitespace-nowrap text-suave', conAsa && 'pl-4')}>{t.codigo}</span>
         <Contador n={noLeidos} etiqueta="mensajes sin leer" />
         <span className="ml-auto flex items-center gap-1">
           <InsigniaPrioridad prioridad={t.prioridad} />
@@ -131,21 +131,17 @@ export const TarjetaArrastrable = memo(function TarjetaArrastrable({
       )}
     >
       {soltar.isOver && <span aria-hidden className="absolute -top-1.5 right-0 left-0 h-1 rounded-full bg-primario" />}
-      <ContenidoTarjeta
-        {...datos}
-        asa={
-          <button
-            type="button"
-            ref={arrastre.setActivatorNodeRef}
-            {...arrastre.attributes}
-            onKeyDown={onKeyDown as ((e: KeyboardEvent) => void) | undefined}
-            className="-ml-1 rounded-sm text-suave"
-            aria-label={`Mover ${t.codigo}`}
-          >
-            <GripVertical aria-hidden className="size-4" />
-          </button>
-        }
-      />
+      <button
+        type="button"
+        ref={arrastre.setActivatorNodeRef}
+        {...arrastre.attributes}
+        onKeyDown={onKeyDown as ((e: KeyboardEvent) => void) | undefined}
+        className="absolute top-3.5 left-1.5 rounded-sm text-suave"
+        aria-label={`Mover ${t.codigo}`}
+      >
+        <GripVertical aria-hidden className="size-4" />
+      </button>
+      <ContenidoTarjeta {...datos} conAsa />
     </div>
   );
 });

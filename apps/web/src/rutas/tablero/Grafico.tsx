@@ -12,6 +12,8 @@ registrar([BarChart, LineChart, HeatmapChart, GridComponent, TooltipComponent, L
 
 export const instancias = new Map<string, ECharts>();
 
+const numero = (v: unknown, unidad = '') => (typeof v === 'number' ? `${v.toLocaleString('es-AR')}${unidad}` : '—');
+
 const color = (nombre: string) => getComputedStyle(document.documentElement).getPropertyValue(nombre).trim();
 
 export function opcion(c: Conjunto): EChartsCoreOption {
@@ -84,7 +86,12 @@ export function opcion(c: Conjunto): EChartsCoreOption {
   };
   return {
     ...base,
-    tooltip: { ...(base.tooltip as object), trigger: 'axis', axisPointer: { type: horizontal ? 'shadow' : 'line', lineStyle: { color: eje } } },
+    tooltip: {
+      ...(base.tooltip as object),
+      trigger: 'axis',
+      axisPointer: { type: horizontal ? 'shadow' : 'line', lineStyle: { color: eje } },
+      valueFormatter: (v: unknown) => numero(v, c.unidad),
+    },
     legend: leyenda,
     grid: grilla,
     xAxis: horizontal ? valores : ejeCategorias,
@@ -98,7 +105,13 @@ export function opcion(c: Conjunto): EChartsCoreOption {
             barMaxWidth: 18,
             barGap: '15%',
             itemStyle: { borderRadius: [0, 4, 4, 0] },
-            label: { show: c.series.length === 1, position: 'right', color: texto, ...fuente, formatter: `{c}${c.unidad ?? ''}` },
+            label: {
+              show: c.series.length === 1,
+              position: 'right',
+              color: texto,
+              ...fuente,
+              formatter: (x: { value: unknown }) => numero(x.value, c.unidad),
+            },
           }
         : {
             type: 'line',
