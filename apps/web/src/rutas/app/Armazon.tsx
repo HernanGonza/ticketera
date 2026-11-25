@@ -32,7 +32,7 @@ import { cn } from '../../lib/cn';
 import { qNoLeidos } from '../../lib/consultas';
 import { useCatalogo, useSala, useUsuario } from '../../lib/hooks';
 import { cambiarPreferencias, preferencias } from '../../lib/preferencias';
-import { Campana, Conexion, MenuUsuario, NoLeidosGlobal } from './Cabecera';
+import { Campana, Conexion, MenuUsuario, NoLeidosGlobal, SelectorTema } from './Cabecera';
 
 interface Item {
   to: '/mis-pedidos' | '/nuevo' | '/kanban' | '/lista' | '/tablero' | '/admin/categorias' | '/admin/usuarios' | '/admin/areas' | '/admin/configuracion' | '/admin/colas';
@@ -212,6 +212,7 @@ export function Armazon() {
           <Conexion />
           {staff && <NoLeidosGlobal />}
           <Campana />
+          <SelectorTema />
           <MenuUsuario usuario={usuario} />
         </div>
       </header>

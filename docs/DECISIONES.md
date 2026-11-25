@@ -39,3 +39,4 @@
 | 35 | Notas internas: solo notificación en la app a staff, nunca correo | Mail a staff | Evitar fugas por reenvío |
 | 36 | En producción sin SMTP no se escribe ni envía correo (advertencia en log) | Escribir archivos | Contienen enlaces con token |
 | 37 | Empleados sin menú lateral (dos destinos en cabecera o barra inferior); «Mis pedidos» en secciones por estado, una consulta por estado; el tema pasa a Preferencias | Lista única paginada | Pedido del usuario: más simple y separado por estado |
+| 38 | «Mis pedidos» en columnas por estado (apiladas en el celular), tarjetas con marco y fondo del color del estado; botón de tema visible en la cabecera | Lista en secciones; tema solo en Preferencias | Ajustes pedidos por el usuario (reemplaza parte de la 37) |

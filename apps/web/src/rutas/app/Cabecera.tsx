@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Bell, LogOut, MessageSquare, Settings } from 'lucide-react';
+import { Bell, LogOut, MessageSquare, Moon, Settings, Sun } from 'lucide-react';
 import { toast } from 'sonner';
 import { esStaff, ETIQUETA_ROL, formatearFechaHora, iniciales } from '@eco/shared/dominio';
 import type { UsuarioActual } from '@eco/shared/schemas';
@@ -116,6 +116,21 @@ export function Campana() {
         </div>
       )}
     </Panel>
+  );
+}
+
+export function SelectorTema() {
+  const oscuro = useAlmacen(preferencias, (p) => p.tema) === 'oscuro';
+  return (
+    <Boton
+      variante="fantasma"
+      tamano="icono"
+      aria-label={oscuro ? 'Usar tema claro' : 'Usar tema oscuro'}
+      title={oscuro ? 'Usar tema claro' : 'Usar tema oscuro'}
+      onClick={() => cambiarPreferencias({ tema: oscuro ? 'claro' : 'oscuro' })}
+    >
+      {oscuro ? <Sun aria-hidden className="size-5" /> : <Moon aria-hidden className="size-5" />}
+    </Boton>
   );
 }
 

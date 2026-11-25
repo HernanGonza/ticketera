@@ -46,7 +46,7 @@ test/                     unitarios (caché, optimismo, kanban, formulario, API,
 
 | `data-testid` | Elemento | Atributos útiles |
 |---|---|---|
-| `seccion-<estado>` | Sección de «Mis pedidos» de un estado (solo si tiene pedidos) | |
+| `seccion-<estado>` | Columna o sección de «Mis pedidos» de un estado (las plegadas, solo si tienen pedidos) | |
 | `columna-<estado>` | Columna del kanban (`nuevo`, `asignado`, `en_curso`, `en_espera`, `resuelto`, `cerrado`) | `data-valida` durante un arrastre |
 | `tarjeta-<codigo>` | Tarjeta del kanban y fila de "Mis pedidos" | |
 | `avatar-tecnico-<id>` | Destino de asignación (`avatar-tecnico-ninguno` = sin asignar) | |
