@@ -12,7 +12,7 @@
   "dependencies": {
     "@eco/api": "*",
     "@eco/shared": "*",
-    "@socket.io/postgres-emitter": "^0.1.1",
+    "@msgpack/msgpack": "^2.8.0",
     "drizzle-orm": "^0.45.0",
     "nodemailer": "^7.0.0",
     "pg": "^8.16.0",
@@ -20,5 +20,8 @@
     "pino": "^10.0.0",
     "zod": "^4.1.0"
   },
-  "devDependencies": { "@types/nodemailer": "^7.0.0", "@types/pg": "^8.15.0" }
+  "devDependencies": {
+    "@types/nodemailer": "^7.0.0",
+    "@types/pg": "^8.15.0"
+  }
 }
