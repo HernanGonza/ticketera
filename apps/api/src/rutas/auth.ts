@@ -20,7 +20,7 @@ import { crearLimitador } from '../auth/limites';
 import type { PersonalProvider } from '../auth/personal';
 import { restablecerPassword } from '../auth/recupero';
 import { abrirSesion, borrarCookies, cerrarSesionActual, renovarSesion } from '../auth/sesiones';
-import { buscarUsuarioPorEmail, obtenerUsuarioSesion, solicitarRecuperacion, USUARIOS_DEMO, emitirEvento } from '../db';
+import { buscarUsuarioPorEmail, obtenerUsuarioSesion, solicitarRecuperacion, USUARIOS_DEMO, CONTRASENA_DEMO, emitirEvento } from '../db';
 import { ErrorHttp, noAutenticado, noEncontrado } from '../errores';
 import { CON_SESION, respuestas } from './comun';
 
@@ -113,11 +113,14 @@ export const rutasAuth: FastifyPluginAsyncZod<{ personal: PersonalProvider }> = 
     },
     async (req, reply) => {
       const { email, password, altcha } = req.body;
-      porEmail.consumir(email);
+      // Primero el captcha: sin resolverlo no se puede agotar el límite de una cuenta ajena.
       await exigirCaptcha(db, config, altcha);
+      porEmail.consumir(email);
       const u = await buscarUsuarioPorEmail(db, email);
       const correcta = await verify(u?.passwordHash ?? relleno, password).catch(() => false);
-      if (!u?.passwordHash || !correcta) throw credencialesInvalidas();
+      // La contraseña de demostración es pública: en una instalación real no abre ninguna cuenta.
+      const publica = config.produccion && !config.seedDemo && password === CONTRASENA_DEMO;
+      if (!u?.passwordHash || !correcta || publica) throw credencialesInvalidas();
       const id = await resolverIngreso(db, personal, email, {
         tolerarFallo: true,
         alFallar: (e) => req.log.warn({ err: e }, 'No se pudo consultar Personal'),
@@ -137,8 +140,8 @@ export const rutasAuth: FastifyPluginAsyncZod<{ personal: PersonalProvider }> = 
     },
     async (req) => {
       const { email, altcha } = req.body;
-      recuperoEmail.consumir(email);
       await exigirCaptcha(db, config, altcha);
+      recuperoEmail.consumir(email);
       const piso = esperar(PISO_RECUPERO_MS);
       const u = await buscarUsuarioPorEmail(db, email);
       if (u?.activo) await solicitarRecuperacion(db, u.id);

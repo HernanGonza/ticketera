@@ -9,7 +9,8 @@ import { COLAS } from '@eco/shared/colas';
 import type { UsuarioSesion } from '@eco/shared/dominio';
 import type { ResumenCola, Trabajo } from '@eco/shared/schemas';
 import { crearApp } from '../../src/app';
-import { COOKIE_SESION, firmarSesion } from '../../src/auth/sesion';
+import { COOKIE_SESION } from '../../src/auth/sesion';
+import { tokenDePrueba } from './sesion';
 import { montar, type Entorno } from '../db/base';
 import { configPrueba } from './apoyo';
 
@@ -42,7 +43,7 @@ afterAll(async () => {
 
 async function pedir(url: string, u?: UsuarioSesion, method: 'GET' | 'POST' = 'GET') {
   const cookies: Record<string, string> = u
-    ? { [COOKIE_SESION]: await firmarSesion(u, app.deps.config.SESSION_SECRET) }
+    ? { [COOKIE_SESION]: await tokenDePrueba(e.db, u, app.deps.config.SESSION_SECRET) }
     : {};
   return app.inject({ url, method, cookies });
 }

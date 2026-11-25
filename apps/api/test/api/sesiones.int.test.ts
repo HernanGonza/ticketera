@@ -45,6 +45,17 @@ describe('login local', () => {
     expect(r[0]!.json().error).toBe('credenciales_invalidas');
   });
 
+  it('en una instalación real la contraseña de demostración no sirve', async () => {
+    const prod = await e.crear({
+      NODE_ENV: 'production',
+      SESSION_SECRET: 's'.repeat(40),
+      ALTCHA_HMAC_KEY: 'a'.repeat(40),
+      SEED_DEMO: 'false',
+    });
+    const { r } = await login('tecnico', CONTRASENA_DEMO, e.cliente(prod), await e.captcha(prod));
+    expect(r.statusCode).toBe(401);
+  });
+
   it('un usuario bloqueado no ingresa', async () => {
     await actualizarUsuario(e.db, (await usuario('maria.lopez')).id, { activo: false });
     const { r } = await login('maria.lopez');
@@ -77,17 +88,18 @@ describe('login local', () => {
     expect(estados).toEqual([400, 400, 400, 429, 429]);
 
     const porCorreo = await e.crear({ LOGIN_MAX_INTENTOS: '2', TRUST_PROXY: 'true' });
+    const intento = async (i: number, altcha: string) =>
+      porCorreo.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        headers: { 'x-forwarded-for': `10.0.0.${i}` },
+        payload: { email: correo('Admin'), password: 'x', altcha },
+      });
+    // Sin captcha válido no se consume el cupo de la cuenta.
+    for (let i = 0; i < 4; i++) expect((await intento(i, 'x')).json().error).toBe('captcha_invalido');
     const r = [];
-    for (let i = 0; i < 3; i++)
-      r.push(
-        await porCorreo.inject({
-          method: 'POST',
-          url: '/api/auth/login',
-          headers: { 'x-forwarded-for': `10.0.0.${i}` },
-          payload: { email: correo('Admin'), password: 'x', altcha: 'x' },
-        }),
-      );
-    expect(r.map((x) => x.statusCode)).toEqual([400, 400, 429]);
+    for (let i = 0; i < 3; i++) r.push(await intento(10 + i, await e.captcha(porCorreo)));
+    expect(r.map((x) => x.statusCode)).toEqual([401, 401, 429]);
     expect(r[2]!.json().error).toBe('demasiados_intentos');
     expect(Number(r[2]!.headers['retry-after'])).toBeGreaterThan(0);
   });

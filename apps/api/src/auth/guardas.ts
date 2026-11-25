@@ -17,7 +17,9 @@ declare module 'fastify' {
  */
 export async function usuarioVigente(db: Ejecutor, token: string, secreto: string): Promise<UsuarioSesion | null> {
   const t = await verificarSesion(token, secreto);
-  if (!t || !esUuid(t.id) || (t.familia !== undefined && !esUuid(t.familia))) return null;
+  // Todo token válido pertenece a una sesión registrada: sin ella no alcanza con la firma.
+  const familia = t?.familia;
+  if (!t || !esUuid(t.id) || !familia || !esUuid(familia)) return null;
   const [u] = await db
     .select({
       id: usuarios.id,
@@ -31,19 +33,17 @@ export async function usuarioVigente(db: Ejecutor, token: string, secreto: strin
       and(
         eq(usuarios.id, t.id),
         eq(usuarios.activo, true),
-        t.familia
-          ? sql`exists (${db
-              .select({ uno: sql`1` })
-              .from(sesiones)
-              .where(
-                and(
-                  eq(sesiones.familia, t.familia),
-                  eq(sesiones.usuarioId, usuarios.id),
-                  isNull(sesiones.revocadoAt),
-                  gt(sesiones.expiraAt, new Date()),
-                ),
-              )})`
-          : undefined,
+        sql`exists (${db
+          .select({ uno: sql`1` })
+          .from(sesiones)
+          .where(
+            and(
+              eq(sesiones.familia, familia),
+              eq(sesiones.usuarioId, usuarios.id),
+              isNull(sesiones.revocadoAt),
+              gt(sesiones.expiraAt, new Date()),
+            ),
+          )})`,
       ),
     );
   return u && u.rol === t.rol ? u : null;

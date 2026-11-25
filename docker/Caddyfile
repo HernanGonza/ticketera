@@ -8,6 +8,8 @@
 		# Por defecto no se confía en X-Forwarded-* del cliente. Si hay otro proxy delante (TLS),
 		# indique su IP o red en CADDY_TRUSTED_PROXIES.
 		trusted_proxies static {$CADDY_TRUSTED_PROXIES:127.0.0.1/32}
+		# La IP del cliente se toma de derecha a izquierda: lo que agregue el propio cliente no cuenta.
+		trusted_proxies_strict
 	}
 	# Registro general (incluye errores del reenvío): sin tokens, correos ni encabezados.
 	log default {
@@ -76,7 +78,10 @@
 		@docs path /api/docs /api/docs/*
 		handle @docs {
 			header ?Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
-			reverse_proxy {$API_UPSTREAM:api:3000}
+			reverse_proxy {$API_UPSTREAM:api:3000} {
+				# La API recibe una sola dirección, la ya validada.
+				header_up X-Forwarded-For {client_ip}
+			}
 		}
 
 		# Solo /auth/portal es de la API: /login, /recuperar, etc. son rutas de la web.
@@ -89,7 +94,10 @@
 			}
 			# Solo si la API no definió la suya.
 			header ?Content-Security-Policy "default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'self'"
-			reverse_proxy {$API_UPSTREAM:api:3000}
+			reverse_proxy {$API_UPSTREAM:api:3000} {
+				# La API recibe una sola dirección, la ya validada.
+				header_up X-Forwarded-For {client_ip}
+			}
 		}
 
 		# Archivos con hash en el nombre: caché permanente. Si no existen, 404 (no el index.html).

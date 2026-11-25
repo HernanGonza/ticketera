@@ -7,10 +7,11 @@ import type { AddressInfo } from 'node:net';
 import { io, type Socket } from 'socket.io-client';
 import type { UsuarioSesion } from '@eco/shared/dominio';
 import { SOCKET_PATH, type EventosCliente, type EventosServidor } from '@eco/shared/realtime';
-import { COOKIE_SESION, firmarSesion } from '../../src/auth/sesion';
+import { COOKIE_SESION } from '../../src/auth/sesion';
 import { cargarConfig } from '../../src/config';
 import { iniciarRealtime, type OpcionesRealtime } from '../../src/realtime';
 import type { Entorno } from '../db/base';
+import { tokenDePrueba } from './sesion';
 
 export const APP_URL = 'http://eco.prueba';
 
@@ -31,7 +32,7 @@ export async function crearServidor(entorno: Entorno, opciones: OpcionesRealtime
     url,
     /** Conecta un cliente autenticado como `usuario`. */
     async conectar(usuario: UsuarioSesion, duracionSeg?: number) {
-      const token = await firmarSesion(usuario, config.SESSION_SECRET, duracionSeg);
+      const token = await tokenDePrueba(entorno.db, usuario, config.SESSION_SECRET, duracionSeg);
       const c = crearCliente(url, { cookie: `${COOKIE_SESION}=${token}`, origin: APP_URL });
       clientes.push(c);
       await c.conectado;

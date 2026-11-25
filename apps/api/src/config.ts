@@ -23,7 +23,8 @@ const booleano = (def: boolean) =>
     .transform((v) => (v === undefined || v === '' ? def : v === 'true' || v === '1'));
 
 const zEnv = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  // Sin definir se asume producción: los atajos de desarrollo hay que pedirlos.
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('production'),
   APP_URL: z.string().default('http://localhost:5173'),
   API_HOST: z.string().default('127.0.0.1'),
   API_PORT: z.coerce.number().default(3000),
@@ -66,6 +67,9 @@ const SECRETOS_DEV = {
   PORTAL_API_KEY: 'dev-solo-portal-api-key',
 } as const;
 
+/** Valores de `.env.example` o de desarrollo: son públicos y no sirven como secreto. */
+export const esValorDeEjemplo = (v: string) => /^(cambiar|dev-solo)/i.test(v);
+
 export function cargarConfig(env: Record<string, string | undefined> = process.env) {
   const limpio = Object.fromEntries(Object.entries(env).filter(([, v]) => v !== ''));
   const e = zEnv.parse(limpio);
@@ -74,7 +78,11 @@ export function cargarConfig(env: Record<string, string | undefined> = process.e
     for (const [k, v] of Object.entries(SECRETOS_DEV) as [keyof typeof SECRETOS_DEV, string][])
       e[k] ||= v;
   } else {
-    const faltan: string[] = (['SESSION_SECRET', 'ALTCHA_HMAC_KEY'] as const).filter((k) => e[k].length < 32);
+    // Con el valor de ejemplo, el ingreso por el portal y su consulta quedan deshabilitados.
+    for (const k of ['PORTAL_JWT_SECRET', 'PORTAL_API_KEY'] as const) if (esValorDeEjemplo(e[k])) e[k] = '';
+    const faltan: string[] = (['SESSION_SECRET', 'ALTCHA_HMAC_KEY'] as const).filter(
+      (k) => e[k].length < 32 || esValorDeEjemplo(e[k]),
+    );
     if (e.PORTAL_API_KEY && e.PORTAL_API_KEY.length < 24) faltan.push('PORTAL_API_KEY');
     if (e.PORTAL_JWT_ALG === 'HS256' && e.PORTAL_JWT_SECRET && e.PORTAL_JWT_SECRET.length < 32)
       faltan.push('PORTAL_JWT_SECRET');

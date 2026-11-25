@@ -54,6 +54,7 @@ services:
       TRUST_PROXY: 'true'
     volumes:
       - uploads:/data/uploads
+      - secretos:/data/secretos
     depends_on:
       db:
         condition: service_healthy
@@ -77,7 +78,9 @@ services:
     # Misma imagen que la API (la construye el servicio `api`).
     image: ecosoporte-app:local
     pull_policy: never
-    command: ['node', 'apps/worker/dist/index.js']
+    command: ['node', 'docker/entrypoint.mjs', 'worker']
+    volumes:
+      - secretos:/data/secretos
     restart: unless-stopped
     env_file: .env
     environment: *entorno-app
@@ -145,4 +148,5 @@ networks:
 volumes:
   pgdata:
   uploads:
+  secretos:
   metabase-data:

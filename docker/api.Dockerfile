@@ -35,9 +35,9 @@ COPY --from=construccion /app/apps/api/dist apps/api/dist
 COPY --from=construccion /app/apps/worker/dist apps/worker/dist
 # El código empaquetado lee las migraciones SQL del árbol de fuentes.
 COPY apps/api/src/db/migrations apps/api/src/db/migrations
-COPY docker/entrypoint.mjs docker/permisos-metabase.mjs docker/
+COPY docker/entrypoint.mjs docker/secretos.mjs docker/permisos-metabase.mjs docker/
 # Un volumen nuevo montado en /data/uploads hereda este propietario.
-RUN mkdir -p /data/uploads && chown -R node:node /data
+RUN mkdir -p /data/uploads /data/secretos && chown -R node:node /data
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=5 \

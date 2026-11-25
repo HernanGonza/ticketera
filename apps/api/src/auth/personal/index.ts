@@ -16,9 +16,15 @@ export interface PersonalProvider {
   cerrar?(): Promise<void>;
 }
 
-export const crearPersonal = (config: Pick<Config, 'PERSONAL_DATABASE_URL'>): PersonalProvider =>
-  config.PERSONAL_DATABASE_URL
-    ? new PersonalPostgresProvider(config.PERSONAL_DATABASE_URL)
-    : new PersonalMockProvider();
+/** Sin base de Personal y fuera de la demo: solo ingresan los usuarios locales. */
+const SIN_PERSONAL: PersonalProvider = { buscarPorEmail: async () => null };
+
+/** Los empleados simulados solo existen en desarrollo o con los datos de demostración. */
+export function crearPersonal(
+  config: Pick<Config, 'PERSONAL_DATABASE_URL' | 'produccion' | 'seedDemo'>,
+): PersonalProvider {
+  if (config.PERSONAL_DATABASE_URL) return new PersonalPostgresProvider(config.PERSONAL_DATABASE_URL);
+  return !config.produccion || config.seedDemo ? new PersonalMockProvider() : SIN_PERSONAL;
+}
 
 export { PersonalMockProvider, PersonalPostgresProvider };

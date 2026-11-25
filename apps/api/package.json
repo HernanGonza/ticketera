@@ -9,18 +9,18 @@
     "./log": "./src/log.ts"
   },
   "scripts": {
-    "dev": "tsx watch --clear-screen=false src/server.ts",
+    "dev": "cross-env NODE_ENV=development tsx watch --clear-screen=false src/server.ts",
     "build": "node ../../scripts/bundle.mjs api",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/db/cli.ts migrar",
-    "db:seed": "tsx src/db/cli.ts seed",
-    "db:reset": "tsx src/db/cli.ts reset",
-    "db:perf": "tsx src/db/cli.ts perf",
+    "db:migrate": "cross-env NODE_ENV=development tsx src/db/cli.ts migrar",
+    "db:seed": "cross-env NODE_ENV=development tsx src/db/cli.ts seed",
+    "db:reset": "cross-env NODE_ENV=development tsx src/db/cli.ts reset",
+    "db:perf": "cross-env NODE_ENV=development tsx src/db/cli.ts perf",
     "prod:migrate": "node dist/cli.js migrar",
     "prod:seed": "node dist/cli.js seed",
-    "dev:token": "tsx src/auth/dev-token.ts"
+    "dev:token": "cross-env NODE_ENV=development tsx src/auth/dev-token.ts"
   },
   "dependencies": {
     "@eco/shared": "*",

@@ -4,6 +4,7 @@ import type { UsuarioSesion } from '@eco/shared/dominio';
 import { SALAS } from '@eco/shared/realtime';
 import { CONFIGURACION_DEFAULT } from '@eco/shared/schemas';
 import { COOKIE_SESION, firmarSesion } from '../../src/auth/sesion';
+import { tokenDePrueba } from './sesion';
 import { guardarConfiguracion, usuarios } from '../../src/db';
 import { origenPermitido } from '../../src/realtime';
 import { montar, type Entorno } from '../db/base';
@@ -49,7 +50,7 @@ describe('autenticación', () => {
     }
   };
   const cookie = async (u: UsuarioSesion, duracion?: number, secreto = s.config.SESSION_SECRET) =>
-    `${COOKIE_SESION}=${await firmarSesion(u, secreto, duracion)}`;
+    `${COOKIE_SESION}=${await tokenDePrueba(e.db, u, secreto, duracion)}`;
 
   it('rechaza sin cookie, con firma ajena o vencida', async () => {
     expect(await rechazo({})).toBe('no_autenticado');
@@ -88,6 +89,11 @@ describe('autenticación', () => {
     await e.db.update(usuarios).set({ rol: 'solicitante' }).where(eq(usuarios.id, tecnico.id));
     expect(await c.unirse(SALAS.tecnicos)).toBe(false);
     await e.db.update(usuarios).set({ rol: 'tecnico' }).where(eq(usuarios.id, tecnico.id));
+  });
+
+  it('rechaza un token firmado sin sesión registrada', async () => {
+    const token = await firmarSesion(sofia, s.config.SESSION_SECRET, 60);
+    expect(await rechazo({ cookie: `${COOKIE_SESION}=${token}` })).toBe('no_autenticado');
   });
 
   it('rechaza una sesión revocada', async () => {

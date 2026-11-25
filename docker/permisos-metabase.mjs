@@ -10,8 +10,8 @@ const COLUMNAS_USUARIOS = ['id', 'email', 'nombre', 'area_id', 'rol', 'activo', 
 const url = process.env.DATABASE_URL;
 const clave = process.env.METABASE_DB_PASSWORD;
 
-if (!url || !clave) {
-  console.log('Metabase: sin METABASE_DB_PASSWORD, no se crea el usuario de solo lectura.');
+if (!url || !clave || clave.startsWith('cambiar')) {
+  console.log('Metabase: sin una METABASE_DB_PASSWORD propia, no se crea el usuario de solo lectura.');
   process.exit(0);
 }
 

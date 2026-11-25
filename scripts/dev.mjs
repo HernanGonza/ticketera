@@ -12,6 +12,8 @@ const GRACIA_MS = 8_000;
 const TOPE_MS = 12_000;
 
 cargarEnv();
+// La aplicación asume producción si no se indica otra cosa.
+process.env.NODE_ENV ||= 'development';
 desactivarGanchosDeSalida();
 const compilado = process.argv.includes('--build');
 

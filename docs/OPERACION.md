@@ -12,22 +12,31 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Sin editar nada queda una **demo** en <http://localhost:8080> (datos y usuarios de prueba).
+Sin editar nada arranca una instalación **sin datos de demostración**, en <http://localhost:8080>:
+
+- `SESSION_SECRET` y `ALTCHA_HMAC_KEY` se generan solos y quedan en el volumen `secretos`.
+- Se crea el administrador de `ADMIN_EMAIL` con una contraseña generada. Para leerla:
+  `docker compose exec api cat /data/secretos/admin-inicial`. Cámbiela y borre ese archivo.
+- El ingreso desde el portal queda deshabilitado hasta definir sus claves.
+
+Para una **demo** con usuarios de prueba (contraseña pública, solo para evaluar), ponga `SEED_DEMO=true`
+antes del primer arranque. Si una base con datos de demostración pasa a producción, la contraseña de
+demostración deja de aceptarse, pero conviene empezar con una base limpia.
 
 ### Antes de usarlo en producción (en `.env`)
 
 | Variable | Qué poner |
 |---|---|
 | `POSTGRES_PASSWORD` | Clave aleatoria (solo letras, números, `-` y `_`). Se fija en el primer arranque |
-| `SESSION_SECRET`, `ALTCHA_HMAC_KEY` | Cadenas aleatorias distintas de 32 caracteres o más |
 | `PORTAL_JWT_SECRET` (o clave pública / JWKS), `PORTAL_API_KEY`, `PORTAL_URL` | Las acordadas con el portal |
 | `APP_URL` | Dirección exacta con la que los usuarios abren el sistema |
-| `SEED_DEMO` | `false`, y definir `ADMIN_EMAIL` y `ADMIN_PASSWORD` |
+| `ADMIN_EMAIL` | Correo del administrador inicial (`ADMIN_PASSWORD` es opcional) |
 | `SMTP_*`, `MAIL_FROM` | Servidor de correo |
-| `PERSONAL_DATABASE_URL` | Base de Personal (solo lectura) |
+| `PERSONAL_DATABASE_URL` | Base de Personal (solo lectura). Sin ella solo ingresan los usuarios locales |
 | `METABASE_DB_PASSWORD` | Clave aleatoria, o vacía si no se usará Metabase |
+| `SESSION_SECRET`, `ALTCHA_HMAC_KEY` | Opcionales: 32+ caracteres si prefiere definirlas usted |
 
-Los valores de ejemplo son públicos: con ellos cualquiera puede falsificar ingresos.
+Los valores de ejemplo son públicos y el sistema no los usa como secretos.
 Cadenas aleatorias: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
 
 Para cambiar `POSTGRES_PASSWORD` con la base ya creada, cámbiela primero en Postgres
