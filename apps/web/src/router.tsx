@@ -81,9 +81,8 @@ const nuevo = createRoute({
 });
 const misPedidos = createRoute({
   ...privada('/mis-pedidos'),
-  validateSearch: (s: Record<string, unknown>): { ambito?: 'area'; pagina?: number } => ({
+  validateSearch: (s: Record<string, unknown>): { ambito?: 'area' } => ({
     ambito: s.ambito === 'area' ? 'area' : undefined,
-    pagina: b.entero(s.pagina),
   }),
   component: lazyRouteComponent(() => import('./rutas/solicitante/MisPedidos'), 'MisPedidos'),
 });

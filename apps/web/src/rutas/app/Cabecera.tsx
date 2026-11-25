@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Bell, LogOut, MessageSquare, Moon, Settings, Sun } from 'lucide-react';
+import { Bell, LogOut, MessageSquare, Settings } from 'lucide-react';
 import { toast } from 'sonner';
-import { ETIQUETA_ROL, formatearFechaHora, iniciales } from '@eco/shared/dominio';
+import { esStaff, ETIQUETA_ROL, formatearFechaHora, iniciales } from '@eco/shared/dominio';
 import type { UsuarioActual } from '@eco/shared/schemas';
 import { Avatar, Contador } from '../../componentes/insignias';
 import { Boton, Esqueletos } from '../../componentes/ui/basicos';
@@ -35,13 +35,14 @@ export function Conexion() {
   );
 }
 
-export function NoLeidosGlobal({ staff }: { staff: boolean }) {
+/** Solo staff: los empleados ven el contador sobre "Mis pedidos". */
+export function NoLeidosGlobal() {
   const total = useQuery(qNoLeidos).data?.total ?? 0;
   if (!total) return null;
   return (
     <Link
-      to={staff ? '/kanban' : '/mis-pedidos'}
-      search={staff ? { mios: true } : {}}
+      to="/kanban"
+      search={{ mios: true }}
       className="flex items-center gap-1 rounded-md p-1.5 hover:bg-superficie-2"
       title="Mensajes sin leer"
       data-testid="no-leidos-total"
@@ -118,23 +119,7 @@ export function Campana() {
   );
 }
 
-export function SelectorTema() {
-  const tema = useAlmacen(preferencias, (p) => p.tema);
-  const oscuro = tema === 'oscuro';
-  return (
-    <Boton
-      variante="fantasma"
-      tamano="icono"
-      className="max-sm:hidden"
-      aria-label={oscuro ? 'Usar tema claro' : 'Usar tema oscuro'}
-      onClick={() => cambiarPreferencias({ tema: oscuro ? 'claro' : 'oscuro' })}
-    >
-      {oscuro ? <Sun aria-hidden className="size-5" /> : <Moon aria-hidden className="size-5" />}
-    </Boton>
-  );
-}
-
-function Preferencias({ cerrar }: { cerrar: () => void }) {
+function Preferencias({ cerrar, staff }: { cerrar: () => void; staff: boolean }) {
   const p = useAlmacen(preferencias);
   const casilla = (texto: string, valor: boolean, cambiar: (v: boolean) => void, ayuda?: string) => (
     <label className="flex items-start gap-3 py-2 text-sm">
@@ -148,26 +133,30 @@ function Preferencias({ cerrar }: { cerrar: () => void }) {
   return (
     <Dialogo abierto cerrar={cerrar} titulo="Preferencias" descripcion="Se guardan en este navegador.">
       {casilla('Tema oscuro', p.tema === 'oscuro', (v) => cambiarPreferencias({ tema: v ? 'oscuro' : 'claro' }))}
-      {casilla(
-        'Sonido de aviso',
-        p.sonido,
-        (v) => {
-          cambiarPreferencias({ sonido: v });
-          if (v) sonar();
-        },
-        'Para técnicos: suena al ingresar un ticket nuevo o crítico.',
-      )}
-      {casilla(
-        'Notificaciones del navegador',
-        p.notificaciones,
-        (v) => {
-          if (!v) return cambiarPreferencias({ notificaciones: false });
-          void pedirPermisoNotificaciones().then((ok) => {
-            cambiarPreferencias({ notificaciones: ok });
-            if (!ok) toast.error('El navegador no permitió las notificaciones. Revise los permisos del sitio.');
-          });
-        },
-        'Para técnicos: avisa aunque la pestaña esté en segundo plano.',
+      {staff && (
+        <>
+          {casilla(
+            'Sonido de aviso',
+            p.sonido,
+            (v) => {
+              cambiarPreferencias({ sonido: v });
+              if (v) sonar();
+            },
+            'Suena al ingresar un ticket nuevo o crítico.',
+          )}
+          {casilla(
+            'Notificaciones del navegador',
+            p.notificaciones,
+            (v) => {
+              if (!v) return cambiarPreferencias({ notificaciones: false });
+              void pedirPermisoNotificaciones().then((ok) => {
+                cambiarPreferencias({ notificaciones: ok });
+                if (!ok) toast.error('El navegador no permitió las notificaciones. Revise los permisos del sitio.');
+              });
+            },
+            'Avisa aunque la pestaña esté en segundo plano.',
+          )}
+        </>
       )}
     </Dialogo>
   );
@@ -201,7 +190,7 @@ export function MenuUsuario({ usuario }: { usuario: UsuarioActual }) {
           <LogOut aria-hidden className="size-4" /> Cerrar sesión
         </ItemMenu>
       </Menu>
-      {abierto && <Preferencias cerrar={() => setAbierto(false)} />}
+      {abierto && <Preferencias staff={esStaff(usuario)} cerrar={() => setAbierto(false)} />}
     </>
   );
 }

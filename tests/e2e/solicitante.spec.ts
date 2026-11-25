@@ -84,3 +84,20 @@ test('un pedido resuelto se puede reabrir', async ({ abrir }) => {
   const t = await solicitante.api.ticket(id);
   expect(t.reabierto).toBe(1);
 });
+
+test('mis pedidos se agrupan por estado y el pedido cambia de sección en vivo', async ({ abrir }) => {
+  const solicitante = await abrir(CUENTAS.solicitante);
+  const tecnico = await abrir(CUENTAS.tecnico);
+  const { id, codigo } = await solicitante.api.crearPedido(unico('Teclado sin respuesta'));
+  const { page } = solicitante;
+  await page.goto('/mis-pedidos');
+  const tarjeta = (estado: string) => page.getByTestId(`seccion-${estado}`).getByTestId(`tarjeta-${codigo}`);
+  await expect(tarjeta('nuevo')).toBeVisible();
+  await tecnico.api.actualizar(id, { estado: 'en_curso' });
+  await expect(tarjeta('en_curso')).toBeVisible();
+  await expect(tarjeta('nuevo')).toHaveCount(0);
+  await expect(page.getByTestId('seccion-cerrado').getByRole('button', { name: /^Cerrados/ })).toHaveAttribute(
+    'aria-expanded',
+    'false',
+  );
+});

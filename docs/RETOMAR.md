@@ -6,6 +6,9 @@ meta (`docs/PERFORMANCE.md`). Los agentes de corrección se detuvieron antes de 
 
 ## 0. Pedido del usuario al pausar (prioridad al retomar)
 
+Forma de trabajo acordada: sin subagentes, tandas chicas y parar para que el usuario revise.
+Hecho (tanda 1): «Mis pedidos» separado por estado y menú de empleados sin barra lateral. Falta el resto.
+
 - **La UX/UI no está bien: tiene que ser más simple.** Revisar todas las pantallas con ese criterio (menos
   elementos, controles y texto a la vista; flujos más directos). Las pruebas verdes no validan esto.
 - **Mis pedidos (empleados): los pedidos tienen que estar separados por estado** (secciones o pestañas por
