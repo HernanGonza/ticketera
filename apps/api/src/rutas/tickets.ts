@@ -36,7 +36,6 @@ import {
   obtenerTicketResumen,
 } from '../db';
 import { ErrorHttp, noEncontrado } from '../errores';
-import { limpiarError } from '../log';
 import { aCsv } from './csv';
 import { CON_SESION, respuestas, ticketEditable, ticketVisible, zRefTicket } from './comun';
 
@@ -153,7 +152,7 @@ export const rutasTickets: FastifyPluginAsyncZod = async (app) => {
           await actualizarTicket(db, id, req.body.cambios, u);
           actualizados.push(id);
         } catch (e) {
-          if (!(e instanceof ErrorHttp)) req.log.error({ err: limpiarError(e) }, 'Falló una acción masiva');
+          if (!(e instanceof ErrorHttp)) req.log.error({ err: e }, 'Falló una acción masiva');
           errores.push({ id, mensaje: e instanceof ErrorHttp ? e.message : 'No se pudo actualizar.' });
         }
       }

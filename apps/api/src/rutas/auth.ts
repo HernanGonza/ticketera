@@ -22,7 +22,6 @@ import { restablecerPassword } from '../auth/recupero';
 import { abrirSesion, borrarCookies, cerrarSesionActual, renovarSesion } from '../auth/sesiones';
 import { buscarUsuarioPorEmail, obtenerUsuarioSesion, solicitarRecuperacion, USUARIOS_DEMO } from '../db';
 import { ErrorHttp, noAutenticado, noEncontrado } from '../errores';
-import { limpiarError } from '../log';
 import { CON_SESION, respuestas } from './comun';
 
 const MINUTO = 60_000;
@@ -121,7 +120,7 @@ export const rutasAuth: FastifyPluginAsyncZod<{ personal: PersonalProvider }> = 
       if (!u?.passwordHash || !correcta) throw credencialesInvalidas();
       const id = await resolverIngreso(db, personal, email, {
         tolerarFallo: true,
-        alFallar: (e) => req.log.warn({ err: limpiarError(e) }, 'No se pudo consultar Personal'),
+        alFallar: (e) => req.log.warn({ err: e }, 'No se pudo consultar Personal'),
       });
       const sesion = id ? await abrirSesion(app.deps, req, reply, id) : null;
       if (!sesion) throw noHabilitado();

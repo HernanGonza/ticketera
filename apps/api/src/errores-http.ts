@@ -3,7 +3,6 @@ import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import { hasZodFastifySchemaValidationErrors, isResponseSerializationError } from 'fastify-type-provider-zod';
 import type { CodigoError } from '@eco/shared/schemas';
 import { ErrorHttp } from './errores';
-import { limpiarError } from './log';
 
 const cuerpo = (error: CodigoError, mensaje: string, detalles?: unknown) => ({ error, mensaje, detalles });
 
@@ -34,7 +33,7 @@ export function manejarError(error: FastifyError, req: FastifyRequest, reply: Fa
   const status = error.statusCode;
   if (!isResponseSerializationError(error) && status && status >= 400 && status < 500)
     return reply.status(status).send(cuerpo(...porEstado(status)));
-  req.log.error({ err: limpiarError(error) }, 'Error no controlado');
+  req.log.error({ err: error }, 'Error no controlado');
   return reply.status(500).send(cuerpo('interno', GENERICO));
 }
 

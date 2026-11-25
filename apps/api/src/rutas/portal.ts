@@ -12,7 +12,6 @@ import { redirectSeguro } from '../auth/redirect';
 import { abrirSesion } from '../auth/sesiones';
 import { buscarUsuarioPorEmail } from '../db';
 import { ErrorHttp, noEncontrado } from '../errores';
-import { limpiarError } from '../log';
 import { respuestas } from './comun';
 
 const MINUTO = 60_000;
@@ -60,7 +59,7 @@ export const rutasPortal: FastifyPluginAsyncZod<{ personal: PersonalProvider }> 
     errorHandler: (error: Error & { statusCode?: number }, req: FastifyRequest, reply: FastifyReply) => {
       if (error instanceof ErrorHttp) return volver(reply, error.codigo);
       if (error.statusCode && error.statusCode < 500) return volver(reply, 'validacion');
-      req.log.error({ err: limpiarError(error) }, 'Falló el ingreso por el portal');
+      req.log.error({ err: error }, 'Falló el ingreso por el portal');
       return volver(reply, 'interno');
     },
   };
@@ -123,7 +122,7 @@ export const rutasPortal: FastifyPluginAsyncZod<{ personal: PersonalProvider }> 
       const { email } = req.query;
       const local = await buscarUsuarioPorEmail(db, email);
       const empleado = await personal.buscarPorEmail(email).catch((e: unknown) => {
-        req.log.warn({ err: limpiarError(e) }, 'No se pudo consultar Personal');
+        req.log.warn({ err: e }, 'No se pudo consultar Personal');
         return null;
       });
       const existe = empleado ? empleado.activo && !local?.bloqueado : !!local?.activo;
