@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1795573543871,
+      "tag": "0000_extensiones",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795573544651,
+      "tag": "0001_inicial",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795573545389,
+      "tag": "0002_codigo_y_vistas",
+      "breakpoints": true
+    }
+  ]
+}
