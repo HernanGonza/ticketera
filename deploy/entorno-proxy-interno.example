@@ -1,0 +1,14 @@
+# Agregar/sobrescribir estas variables en ticketera/.env para este despliegue.
+# El resto viene de ticketera/.env.example.
+
+# El proxy interno escucha en 8080; ticketera usa otro puerto, solo en localhost.
+APP_PORT=8081
+APP_URL=https://soporte.ecologia.misiones.gob.ar
+COOKIE_SECURE=true
+HSTS=max-age=31536000
+
+# Caddy confía en el salto anterior: el proxy interno sale por la bridge de Docker.
+CADDY_TRUSTED_PROXIES=172.16.0.0/12
+
+# Portal (si se usa SSO): valores del portal, no del dominio de ecodatos.
+# PORTAL_URL=https://portal.ecologia.misiones.gob.ar
